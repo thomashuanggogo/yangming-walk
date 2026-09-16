@@ -1,0 +1,792 @@
+/* ==========================================================================
+   陽明里漫步指南 - 直立式手機 2D 遊戲樣式表
+   設計風格：山城森林綠與美軍宿舍紅磚色調，針對手機觸控與長輩易讀性最佳化
+   ========================================================================== */
+
+:root {
+  --color-primary-green: #2c5e3b;
+  --color-dark-green: #1b3a24;
+  --color-brick-red: #b94a34;
+  --color-warm-cream: #fbf9f4;
+  --color-panel-bg: #222629;
+  --color-btn-face: #383e42;
+  --color-btn-active: #50585e;
+  --color-accent-gold: #d4a373;
+  --color-text-main: #1f2421;
+  --color-text-muted: #6b7280;
+  --color-text-light: #ffffff;
+  --radius-sm: 8px;
+  --radius-md: 14px;
+  --radius-lg: 20px;
+  --shadow-soft: 0 4px 16px rgba(0, 0, 0, 0.2);
+  --shadow-press: inset 0 3px 6px rgba(0, 0, 0, 0.4);
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+html, body {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background-color: #121415;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang TC", "Noto Sans TC", "Microsoft JhengHei", sans-serif;
+  color: var(--color-text-main);
+}
+
+/* 直立外框：在電腦上置中模擬手機，在手機上佔滿 100% 高度 */
+#app-wrapper {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: #121415;
+}
+
+#phone-shell {
+  width: 100%;
+  max-width: 480px;
+  height: 100%;
+  max-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  background-color: var(--color-warm-cream);
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 0 30px rgba(0, 0, 0, 0.6);
+}
+
+/* --------------------------------------------------------------------------
+   頂部資訊列
+   -------------------------------------------------------------------------- */
+#game-header {
+  height: 52px;
+  background-color: var(--color-primary-green);
+  color: var(--color-text-light);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 14px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+  z-index: 10;
+  flex-shrink: 0;
+}
+
+.header-brand {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.game-title {
+  font-size: 1.15rem;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+}
+
+.badge-district {
+  font-size: 0.75rem;
+  background-color: var(--color-dark-green);
+  padding: 2px 6px;
+  border-radius: 4px;
+  color: #c9e4ca;
+}
+
+.header-stats {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.stat-pill {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  background-color: rgba(255, 255, 255, 0.16);
+  padding: 3px 8px;
+  border-radius: 16px;
+  font-size: 0.76rem;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  transition: all 0.2s ease;
+}
+
+.coin-pill {
+  background: linear-gradient(135deg, rgba(255, 215, 0, 0.22), rgba(217, 119, 6, 0.25));
+  border-color: rgba(255, 215, 0, 0.35);
+}
+
+.coin-svg {
+  display: block;
+  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.3));
+}
+
+.stat-label {
+  color: rgba(255, 255, 255, 0.85);
+  font-size: 0.72rem;
+}
+
+.stat-number {
+  font-weight: 700;
+  font-size: 0.88rem;
+}
+
+.coin-number {
+  color: #ffea79;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+.quest-number {
+  color: #e2e8f0;
+}
+
+/* --------------------------------------------------------------------------
+   直立遊戲畫布區域
+   -------------------------------------------------------------------------- */
+#viewport-container {
+  flex: 1;
+  position: relative;
+  width: 100%;
+  background-color: #eee7db;
+  overflow: hidden;
+}
+
+#game-canvas {
+  width: 100%;
+  height: 100%;
+  display: block;
+  touch-action: none;
+}
+
+/* 接近地標時的浮動互動氣泡提示 */
+.proximity-bubble {
+  position: absolute;
+  bottom: 16px;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: var(--color-brick-red);
+  color: #fff;
+  border: 2px solid #ffffff;
+  padding: 8px 18px;
+  border-radius: 30px;
+  font-size: 0.95rem;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.35);
+  cursor: pointer;
+  animation: pulseBubble 1.4s infinite ease-in-out;
+  z-index: 5;
+}
+
+@keyframes pulseBubble {
+  0%, 100% { transform: translateX(-50%) scale(1); }
+  50% { transform: translateX(-50%) scale(1.06); }
+}
+
+/* 浮動提示 Toast */
+.toast-popup {
+  position: absolute;
+  top: 14px;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: rgba(27, 58, 36, 0.92);
+  color: #ffffff;
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+  z-index: 6;
+  white-space: nowrap;
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+}
+
+/* --------------------------------------------------------------------------
+   下方專屬虛擬手把托盤（針對雙手拇指人體工學）
+   -------------------------------------------------------------------------- */
+#gamepad-tray {
+  height: 175px;
+  background: linear-gradient(180deg, #2b3034 0%, #1c1f21 100%);
+  border-top: 3px solid #141718;
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  padding: 10px 16px;
+  touch-action: manipulation;
+  flex-shrink: 0;
+  z-index: 10;
+}
+
+/* 十字方向鍵模組 */
+.dpad-cluster {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 140px;
+}
+
+.dpad-row {
+  display: flex;
+  align-items: center;
+}
+
+.dpad-core {
+  width: 44px;
+  height: 44px;
+  background-color: #272a2d;
+}
+
+.ctrl-btn {
+  width: 46px;
+  height: 46px;
+  background: linear-gradient(180deg, #444b50 0%, #303538 100%);
+  border: 1px solid #575e63;
+  color: #d1d5db;
+  font-size: 1.1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 3px 6px rgba(0,0,0,0.5);
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.ctrl-btn:active, .ctrl-btn.active {
+  background: #232729;
+  box-shadow: var(--shadow-press);
+  color: #ffea79;
+}
+
+.dpad-up { border-radius: 8px 8px 0 0; }
+.dpad-down { border-radius: 0 0 8px 8px; }
+.dpad-left { border-radius: 8px 0 0 8px; }
+.dpad-right { border-radius: 0 8px 8px 0; }
+
+/* 右側大型動作鍵 */
+.action-cluster {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.action-btn-large {
+  width: 110px;
+  height: 64px;
+  background: linear-gradient(180deg, #b94a34 0%, #8f3120 100%);
+  border: 2px solid #e06c55;
+  border-radius: 32px;
+  color: #ffffff;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.4);
+}
+
+.action-btn-large:active {
+  transform: translateY(2px);
+  box-shadow: inset 0 2px 6px rgba(0,0,0,0.5);
+}
+
+.btn-main-label {
+  font-size: 1rem;
+  font-weight: bold;
+  letter-spacing: 0.5px;
+}
+
+.btn-sub-label {
+  font-size: 0.72rem;
+  opacity: 0.85;
+}
+
+.hint-label {
+  font-size: 0.72rem;
+  color: #9ca3af;
+  text-align: center;
+}
+
+/* --------------------------------------------------------------------------
+   彈窗與卡片系統
+   -------------------------------------------------------------------------- */
+.modal-backdrop {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.75);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 18px;
+  z-index: 100;
+}
+
+.modal-card {
+  width: 100%;
+  max-width: 380px;
+  background-color: var(--color-warm-cream);
+  border-radius: var(--radius-lg);
+  padding: 20px;
+  box-shadow: var(--shadow-soft);
+  animation: cardEnter 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  display: flex;
+  flex-direction: column;
+}
+
+@keyframes cardEnter {
+  from { opacity: 0; transform: scale(0.9) translateY(20px); }
+  to { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+.modal-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.modal-tag {
+  font-size: 0.75rem;
+  background-color: var(--color-brick-red);
+  color: #fff;
+  padding: 3px 8px;
+  border-radius: 4px;
+  font-weight: bold;
+}
+
+.modal-close {
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  line-height: 1;
+}
+
+.modal-title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--color-text-main);
+  margin-bottom: 12px;
+  border-bottom: 2px solid #e5e0d8;
+  padding-bottom: 6px;
+}
+
+.landmark-visual {
+  width: 100%;
+  height: 140px;
+  border-radius: var(--radius-md);
+  margin-bottom: 12px;
+  background-size: cover;
+  background-position: center;
+  border: 1px solid #dcd7ce;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #edf2f4;
+  overflow: hidden;
+}
+
+.modal-desc {
+  font-size: 0.95rem;
+  line-height: 1.6;
+  color: #333d29;
+  margin-bottom: 16px;
+  text-align: justify;
+}
+
+.modal-bottom {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.confirm-btn {
+  width: 100%;
+  background-color: var(--color-primary-green);
+  color: #fff;
+  border: none;
+  padding: 12px;
+  border-radius: var(--radius-md);
+  font-size: 1rem;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.confirm-btn:active {
+  background-color: var(--color-dark-green);
+}
+
+/* --------------------------------------------------------------------------
+   榮譽認證卡片
+   -------------------------------------------------------------------------- */
+.cert-card {
+  text-align: center;
+  border: 4px double var(--color-accent-gold);
+  background: #fffdf9;
+}
+
+.cert-ribbon {
+  display: inline-block;
+  background-color: var(--color-accent-gold);
+  color: #fff;
+  font-size: 0.8rem;
+  font-weight: bold;
+  padding: 4px 14px;
+  border-radius: 12px;
+  margin-bottom: 8px;
+}
+
+.cert-title {
+  font-size: 1.3rem;
+  color: var(--color-dark-green);
+  margin-bottom: 6px;
+}
+
+.cert-subtitle {
+  font-size: 0.85rem;
+  color: var(--color-text-muted);
+  margin-bottom: 14px;
+}
+
+.cert-checklist {
+  text-align: left;
+  background-color: #f7f4ed;
+  border-radius: var(--radius-sm);
+  padding: 10px 14px;
+  margin-bottom: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.check-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 0.85rem;
+}
+
+.check-icon {
+  color: var(--color-primary-green);
+  font-weight: bold;
+  font-size: 1rem;
+}
+
+.check-item strong {
+  display: block;
+  color: var(--color-text-main);
+}
+
+.check-item small {
+  color: var(--color-text-muted);
+  font-size: 0.75rem;
+}
+
+.cert-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.cert-btn {
+  flex: 1;
+  padding: 11px;
+  border-radius: var(--radius-md);
+  font-size: 0.92rem;
+  font-weight: bold;
+  cursor: pointer;
+  border: none;
+}
+
+.cert-btn.primary {
+  background-color: var(--color-brick-red);
+  color: #fff;
+}
+
+.cert-btn.secondary {
+  background-color: #e5e7eb;
+  color: #374151;
+}
+
+.hidden {
+  display: none !important;
+}
+
+/* ==========================================================================
+   手繪水彩文史圖鑑冊專屬樣式（Illustrated Landmark Album）
+   ========================================================================== */
+
+.album-pill {
+  cursor: pointer;
+  background: linear-gradient(135deg, rgba(56, 189, 248, 0.2), rgba(37, 99, 235, 0.25));
+  border-color: rgba(56, 189, 248, 0.4);
+  color: #fff;
+}
+
+.album-pill:hover {
+  background: linear-gradient(135deg, rgba(56, 189, 248, 0.35), rgba(37, 99, 235, 0.4));
+  transform: translateY(-1px);
+}
+
+.album-pill:active {
+  transform: scale(0.96);
+}
+
+.album-svg {
+  display: block;
+  stroke: #7dd3fc;
+}
+
+.album-card {
+  max-width: 440px;
+  width: 95%;
+  max-height: 88vh;
+  display: flex;
+  flex-direction: column;
+  padding: 16px 14px 14px;
+  background: #fbfaf6;
+  border: 2px solid #e2ded5;
+}
+
+.album-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 8px;
+}
+
+.album-title-group .modal-tag {
+  background-color: var(--color-primary-green);
+  color: #fff;
+  font-size: 0.72rem;
+  padding: 2px 8px;
+  border-radius: 4px;
+  display: inline-block;
+  margin-bottom: 4px;
+}
+
+.album-title {
+  font-size: 1.15rem;
+  font-weight: bold;
+  color: #1c2b1e;
+  letter-spacing: 0.5px;
+}
+
+.album-subtitle {
+  font-size: 0.74rem;
+  color: var(--color-text-muted);
+  margin-top: 2px;
+}
+
+.album-progress-wrap {
+  background: #f0ede5;
+  border-radius: 8px;
+  padding: 8px 10px;
+  margin-bottom: 8px;
+  position: relative;
+  overflow: hidden;
+}
+
+.album-progress-bar-bg {
+  width: 100%;
+  height: 7px;
+  background: #e2ddd3;
+  border-radius: 4px;
+  overflow: hidden;
+  margin-bottom: 4px;
+}
+
+.album-progress-bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #10b981, #059669);
+  border-radius: 4px;
+  transition: width 0.4s ease;
+}
+
+.album-progress-meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.76rem;
+  color: #57534e;
+}
+
+.album-stamp {
+  background: linear-gradient(135deg, #d97706, #b45309);
+  color: #fff;
+  font-weight: 800;
+  font-size: 0.68rem;
+  padding: 2px 8px;
+  border-radius: 4px;
+  border: 1px dashed #fef08a;
+  transform: rotate(-3deg);
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.15);
+  animation: stampPulse 2s infinite ease-in-out;
+}
+
+@keyframes stampPulse {
+  0%, 100% { transform: rotate(-3deg) scale(1); }
+  50% { transform: rotate(-3deg) scale(1.05); }
+}
+
+.album-tabs {
+  display: flex;
+  gap: 5px;
+  overflow-x: auto;
+  padding-bottom: 6px;
+  margin-bottom: 8px;
+  scrollbar-width: none;
+}
+
+.album-tabs::-webkit-scrollbar {
+  display: none;
+}
+
+.album-tab {
+  flex-shrink: 0;
+  padding: 4px 10px;
+  border-radius: 12px;
+  border: 1px solid #d6d3cb;
+  background: #fff;
+  font-size: 0.74rem;
+  font-weight: 600;
+  color: #57534e;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.album-tab.active {
+  background: var(--color-primary-green);
+  color: #fff;
+  border-color: var(--color-dark-green);
+}
+
+.album-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+  overflow-y: auto;
+  padding: 2px;
+  max-height: 50vh;
+  margin-bottom: 8px;
+}
+
+.album-item {
+  background: #fff;
+  border-radius: 10px;
+  padding: 8px 6px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  border: 1.5px solid #e5e2da;
+  transition: all 0.2s ease;
+  cursor: pointer;
+  position: relative;
+}
+
+.album-item.unlocked:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  border-color: #cbd5e1;
+}
+
+.album-item.unlocked {
+  background: #ffffff;
+}
+
+.album-item.locked {
+  background: #f4f3ef;
+  border: 1.5px dashed #d1cdc4;
+  opacity: 0.85;
+}
+
+.album-icon-wrap {
+  width: 72px;
+  height: 72px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 6px;
+  position: relative;
+}
+
+.album-icon-img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  filter: drop-shadow(0 2px 5px rgba(0, 0, 0, 0.15));
+}
+
+.album-item.locked .album-icon-img {
+  filter: grayscale(100%) brightness(0.2) opacity(0.3);
+}
+
+.album-lock-badge {
+  position: absolute;
+  background: rgba(0, 0, 0, 0.6);
+  color: #fff;
+  font-size: 0.65rem;
+  padding: 2px 6px;
+  border-radius: 10px;
+  bottom: 4px;
+}
+
+.album-item-code {
+  font-size: 0.68rem;
+  font-weight: bold;
+  color: #78716c;
+  margin-bottom: 2px;
+}
+
+.album-item-name {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--color-text-main);
+  line-height: 1.25;
+  margin-bottom: 4px;
+}
+
+.album-item.locked .album-item-name {
+  color: #78716c;
+}
+
+.album-item-district {
+  font-size: 0.66rem;
+  color: #854d0e;
+  background: #fefce8;
+  padding: 1px 6px;
+  border-radius: 4px;
+  margin-bottom: 4px;
+}
+
+.album-item-signature {
+  font-size: 0.68rem;
+  color: #57534e;
+  line-height: 1.3;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.album-item.locked .album-item-signature {
+  color: #a8a29e;
+  font-style: italic;
+}
+
+.album-footer {
+  padding-top: 4px;
+}

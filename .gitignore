@@ -1,0 +1,13 @@
+﻿# 系統與暫存檔
+.DS_Store
+Thumbs.db
+*.tmp
+*.log
+
+# 編譯暫存與測試執行檔
+*.exe
+*.pdb
+scratch/
+
+# 依賴模組
+node_modules/

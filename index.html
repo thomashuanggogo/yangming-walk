@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <title>陽明里漫步指南 - 2D 探索遊戲</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <!-- 直立式手機機身容器 -->
+  <main id="app-wrapper">
+    <div id="phone-shell">
+      <!-- 頂部資訊列 -->
+      <header id="game-header">
+        <div class="header-brand">
+          <h1 class="game-title">陽明里漫步</h1>
+          <span class="badge-district">山仔后</span>
+        </div>
+        <div class="header-stats">
+          <div id="coin-tracker" class="stat-pill coin-pill">
+            <svg class="coin-svg" viewBox="0 0 20 20" width="16" height="16">
+              <circle cx="10" cy="10" r="8" fill="#ffd166" stroke="#b45309" stroke-width="1.5"/>
+              <circle cx="10" cy="10" r="5.5" fill="none" stroke="#f59f00" stroke-width="1"/>
+              <text x="10" y="13.5" font-size="9" font-weight="bold" fill="#78350f" text-anchor="middle">$</text>
+            </svg>
+            <span class="stat-label">金幣</span>
+            <strong id="coin-count" class="stat-number coin-number">0 / 30</strong>
+          </div>
+          <button id="btn-open-album" class="stat-pill album-pill" aria-label="打開文史圖鑑" title="查看 30 處地標圖鑑">
+            <svg class="album-svg" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/>
+              <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
+            </svg>
+            <span class="stat-label">圖鑑</span>
+            <strong id="quest-progress" class="stat-number quest-number">0 / 30</strong>
+          </button>
+        </div>
+      </header>
+
+      <!-- 核心遊戲畫面區域（直立視窗） -->
+      <section id="viewport-container">
+        <canvas id="game-canvas"></canvas>
+
+        <!-- 浮動互動提示鈕（靠近地標或人物時顯示） -->
+        <button id="proximity-prompt" class="proximity-bubble hidden">
+          <span class="bubble-text">點擊或按 A 互動</span>
+        </button>
+
+        <!-- 浮動提示訊息 -->
+        <div id="toast-message" class="toast-popup hidden"></div>
+      </section>
+
+      <!-- 下方專屬虛擬手把操控台（直立手持拇指操作區） -->
+      <footer id="gamepad-tray">
+        <div class="dpad-cluster">
+          <button class="ctrl-btn dpad-up" data-dir="up" aria-label="向上移動">▲</button>
+          <div class="dpad-row">
+            <button class="ctrl-btn dpad-left" data-dir="left" aria-label="向左移動">◀</button>
+            <div class="dpad-core"></div>
+            <button class="ctrl-btn dpad-right" data-dir="right" aria-label="向右移動">▶</button>
+          </div>
+          <button class="ctrl-btn dpad-down" data-dir="down" aria-label="向下移動">▼</button>
+        </div>
+
+        <div class="action-cluster">
+          <button id="btn-action-interact" class="action-btn-large" aria-label="互動與調查">
+            <span class="btn-main-label">調查 / 對話</span>
+            <span class="btn-sub-label">A 鍵</span>
+          </button>
+          <div class="hint-label">支援直接點擊地圖走路</div>
+        </div>
+      </footer>
+    </div>
+
+    <!-- 導覽對話卡片彈窗 -->
+    <div id="dialog-modal" class="modal-backdrop hidden">
+      <div class="modal-card">
+        <div class="modal-top">
+          <span id="dialog-tag" class="modal-tag">歷史地標</span>
+          <button id="btn-dialog-close" class="modal-close" aria-label="關閉卡片">&times;</button>
+        </div>
+        <h2 id="dialog-title" class="modal-title">地標名稱</h2>
+        <div class="modal-content">
+          <div id="dialog-visual" class="landmark-visual"></div>
+          <p id="dialog-description" class="modal-desc">文化故事內容。</p>
+        </div>
+        <div class="modal-bottom">
+          <button id="btn-dialog-confirm" class="confirm-btn">收錄至導覽紀錄</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 榮譽里民證結算彈窗 -->
+    <div id="certificate-modal" class="modal-backdrop hidden">
+      <div class="modal-card cert-card">
+        <div class="cert-ribbon">榮譽認證</div>
+        <h2 class="cert-title">陽明里榮譽文史漫遊者</h2>
+        <p class="cert-subtitle">恭喜您完成士林區陽明里全域 30 處文化、學園與特色地標深度走訪與金幣收集</p>
+        
+        <div class="cert-checklist">
+          <div class="check-item">
+            <span class="check-icon">✓</span>
+            <div>
+              <strong>中央・山仔后生活核心</strong>
+              <small>01 派出所、02 麥當勞、03 7-11、04 公園、05 活動中心、06 加油站</small>
+            </div>
+          </div>
+          <div class="check-item">
+            <span class="check-icon">✓</span>
+            <div>
+              <strong>北區・草山歷史官舍</strong>
+              <small>07 豆留森林、08 白房子、09 彩虹谷、10 美軍宿舍北區、11 雀客藏居、12 錫安堂、13 草山御賓館</small>
+            </div>
+          </div>
+          <div class="check-item">
+            <span class="check-icon">✓</span>
+            <div>
+              <strong>西區・華岡美軍生活圈</strong>
+              <small>14 文化大學、15 亞尼克、16 想陽明山、17 星巴克、18 美軍俱樂部、19 美國渡假村、20 陽明教養院、21 屋頂上</small>
+            </div>
+          </div>
+          <div class="check-item">
+            <span class="check-icon">✓</span>
+            <div>
+              <strong>東區・建業學園與生態</strong>
+              <small>22 華岡藝校、23 歐洲學校、24 猛禽中心、25 初衣食午</small>
+            </div>
+          </div>
+          <div class="check-item">
+            <span class="check-icon">✓</span>
+            <div>
+              <strong>南區・花卉信仰與門戶</strong>
+              <small>26 花卉試驗中心、27 陽明福德宮、28 格致國中、29 納美花園、30 下竹林福德宮</small>
+            </div>
+          </div>
+        </div>
+
+        <div class="cert-actions">
+          <button id="btn-cert-close" class="cert-btn secondary">回到地圖漫步</button>
+          <button id="btn-cert-copy" class="cert-btn primary">複製連結給鄰居</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 陽明里手繪水彩文史圖鑑冊彈窗 -->
+    <div id="album-modal" class="modal-backdrop hidden">
+      <div class="modal-card album-card">
+        <div class="album-header">
+          <div class="album-title-group">
+            <span class="modal-tag">里民典藏手冊</span>
+            <h2 class="album-title">陽明里手繪文史圖鑑</h2>
+            <p class="album-subtitle">漫步走訪全里 30 處地標即可點亮專屬水彩圖章</p>
+          </div>
+          <button id="btn-album-close" class="modal-close" aria-label="關閉圖鑑">&times;</button>
+        </div>
+
+        <!-- 收集進度條與全通關火漆印章 -->
+        <div class="album-progress-wrap">
+          <div class="album-progress-bar-bg">
+            <div id="album-progress-bar" class="album-progress-bar-fill" style="width: 0%;"></div>
+          </div>
+          <div class="album-progress-meta">
+            <span id="album-progress-text">已收錄 0 / 30 處地標 (0%)</span>
+            <div id="album-clearance-stamp" class="album-stamp hidden">全通關達成</div>
+          </div>
+        </div>
+
+        <!-- 分區過濾標籤頁 -->
+        <div class="album-tabs" role="tablist">
+          <button class="album-tab active" data-filter="all">全部 (30)</button>
+          <button class="album-tab" data-filter="central">中央 (6)</button>
+          <button class="album-tab" data-filter="north">北區 (7)</button>
+          <button class="album-tab" data-filter="west">西區 (8)</button>
+          <button class="album-tab" data-filter="east">東區 (4)</button>
+          <button class="album-tab" data-filter="south">南區 (5)</button>
+        </div>
+
+        <!-- 30 處地標圖鑑網格 -->
+        <div id="album-grid" class="album-grid">
+          <!-- 由 JavaScript 動態生成 30 處卡片 -->
+        </div>
+
+        <div class="album-footer">
+          <button id="btn-album-confirm" class="confirm-btn">繼續地圖探索</button>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- 主邏輯入口（防止快取） -->
+  <script type="module" src="./src/main.js?v=20260916_pure_handdrawn_map"></script>
+</body>
+</html>
