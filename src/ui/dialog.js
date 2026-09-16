@@ -150,12 +150,6 @@ export class UIManager {
     imgContainer.appendChild(img);
     this.dialogVisual.appendChild(imgContainer);
 
-    const addressHtml = landmark.address ? `
-      <div style="background-color: #f1f5f9; border-radius: 6px; padding: 6px 10px; margin-bottom: 8px; font-size: 0.82rem; color: #334155;">
-        <div><strong>門牌地址：</strong>${landmark.address}</div>
-      </div>
-    ` : "";
-
     const signatureHtml = landmark.signature ? `
       <div style="background-color: #fefce8; border-left: 3px solid #eab308; border-radius: 4px; padding: 6px 10px; margin-bottom: 8px; font-size: 0.84rem; color: #854d0e;">
         <strong>專屬特色：</strong>${landmark.signature}
@@ -163,7 +157,6 @@ export class UIManager {
     ` : "";
 
     this.dialogDesc.innerHTML = `
-      ${addressHtml}
       ${signatureHtml}
       <p style="margin-bottom: 8px; font-size: 0.92rem; line-height: 1.6;">${landmark.description}</p>
       <div style="background-color: #f7f4ed; border-left: 3px solid #b94a34; padding: 6px 10px; font-size: 0.85rem; color: #6b7280;">
