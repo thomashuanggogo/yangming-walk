@@ -3,7 +3,7 @@
  * 管理遊戲主迴圈、相機跟隨、實體更新、接近偵測與互動觸發
  */
 import { YangmingMap } from "../world/map.js";
-import { LANDMARKS } from "../world/landmarks.js";
+import { LANDMARKS } from "../world/landmarks.js?v=20260916_v3";
 import { Player } from "../entities/player.js";
 import { NpcManager } from "../entities/npc.js";
 import { CoinManager } from "../entities/coin.js";

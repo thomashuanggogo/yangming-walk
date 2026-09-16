@@ -1,5 +1,5 @@
 import { CuteHouseRenderer } from "../world/cute_houses.js";
-import { LANDMARKS } from "../world/landmarks.js";
+import { LANDMARKS } from "../world/landmarks.js?v=20260916_v3";
 
 /**
  * UI 與文化導覽卡片管理器
