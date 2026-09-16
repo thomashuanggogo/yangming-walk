@@ -150,18 +150,8 @@ export class UIManager {
     imgContainer.appendChild(img);
     this.dialogVisual.appendChild(imgContainer);
 
-    const signatureHtml = landmark.signature ? `
-      <div style="background-color: #fefce8; border-left: 3px solid #eab308; border-radius: 4px; padding: 6px 10px; margin-bottom: 8px; font-size: 0.84rem; color: #854d0e;">
-        <strong>專屬特色：</strong>${landmark.signature}
-      </div>
-    ` : "";
-
     this.dialogDesc.innerHTML = `
-      ${signatureHtml}
-      <p style="margin-bottom: 8px; font-size: 0.92rem; line-height: 1.6;">${landmark.description}</p>
-      <div style="background-color: #f7f4ed; border-left: 3px solid #b94a34; padding: 6px 10px; font-size: 0.85rem; color: #6b7280;">
-        <strong>文史特點：</strong>${landmark.trivia}
-      </div>
+      <p style="font-size: 0.96rem; line-height: 1.75; color: #1e293b; margin: 0; padding: 4px 0;">${landmark.description}</p>
     `;
 
     this.dialogModal.classList.remove("hidden");
@@ -401,7 +391,7 @@ export class UIManager {
           <div class="album-item-code">${lm.code}・${lm.category}</div>
           <div class="album-item-name">${lm.name}</div>
           <div class="album-item-district">${lm.districtName.split("・")[1] || lm.districtName}</div>
-          <div class="album-item-signature" title="${lm.signature || ''}">${lm.signature || lm.description.slice(0, 24) + '...'}</div>
+          <div class="album-item-signature" title="${lm.description}">${lm.description.slice(0, 24) + '...'}</div>
         `;
         card.addEventListener("click", () => {
           this.closeAlbum();
@@ -416,7 +406,7 @@ export class UIManager {
           <div class="album-item-code">${lm.code}・${lm.districtName.split("・")[0]}</div>
           <div class="album-item-name">？？？？</div>
           <div class="album-item-district">${lm.districtName}</div>
-          <div class="album-item-signature">漫步靠近此處建築正門即可點亮圖章</div>
+          <div class="album-item-signature">漫步靠近此處即可點亮收錄</div>
         `;
         card.addEventListener("click", () => {
           this.showToast(`【${lm.code} 號地標】尚未探索，請在地圖尋找建築！`);
