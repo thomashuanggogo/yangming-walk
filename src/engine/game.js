@@ -52,6 +52,7 @@ export class GameEngine {
       const worldPos = this.camera.screenToWorld(screenX, screenY);
       const snapped = this.map.getClosestWalkablePoint(worldPos.x, worldPos.y);
       this.player.setTarget(snapped.x, snapped.y);
+      this.map.addRipple(snapped.x, snapped.y);
     });
 
     // 接近中的可互動目標（地標或 NPC）

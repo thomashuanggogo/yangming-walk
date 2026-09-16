@@ -2416,6 +2416,7 @@ class YangmingMap {
     this.width = 682;
     this.height = 1024;
     this.animTimer = 0;
+    this.ripples = []; // 點擊尋路金黃水波紋動效
 
     // 載入純淨手繪水彩全景底圖（支援防呆相容）
     if (typeof Image !== "undefined") {
@@ -2471,8 +2472,52 @@ class YangmingMap {
       ctx.fillText("陽明里手繪散步地圖載入中...", this.width / 2, this.height / 2);
     }
 
-    // 3. 僅在玩家靠近地標時繪製單一互動名稱提示，嚴禁額外繪製任何數字編號
+    // 3. 繪製點擊尋路金黃水波紋
+    this.renderRipples(ctx);
+
+    // 4. 僅在玩家靠近地標時繪製單一互動名稱提示，嚴禁額外繪製任何數字編號
     this.renderNearbyPromptOnly(ctx, playerX, playerY);
+  }
+
+  /**
+   * 觸發點擊尋路金黃水波紋
+   */
+  addRipple(x, y) {
+    this.ripples.push({
+      x,
+      y,
+      radius: 6,
+      maxRadius: 36,
+      alpha: 0.9
+    });
+  }
+
+  /**
+   * 渲染擴散水波紋動效
+   */
+  renderRipples(ctx) {
+    for (let i = this.ripples.length - 1; i >= 0; i--) {
+      const r = this.ripples[i];
+      r.radius += (r.maxRadius - r.radius) * 0.16 + 0.6;
+      r.alpha -= 0.038;
+      if (r.alpha <= 0 || r.radius >= r.maxRadius) {
+        this.ripples.splice(i, 1);
+        continue;
+      }
+      ctx.save();
+      ctx.beginPath();
+      ctx.arc(r.x, r.y, r.radius, 0, Math.PI * 2);
+      ctx.strokeStyle = `rgba(245, 159, 0, ${Math.max(0, r.alpha)})`;
+      ctx.lineWidth = 2.5;
+      ctx.stroke();
+
+      // 核心金黃光點
+      ctx.beginPath();
+      ctx.arc(r.x, r.y, 3.5, 0, Math.PI * 2);
+      ctx.fillStyle = `rgba(255, 209, 102, ${Math.max(0, r.alpha)})`;
+      ctx.fill();
+      ctx.restore();
+    }
   }
 
   /**
@@ -2946,8 +2991,11 @@ class UIManager {
         });
       } else {
         card.innerHTML = `
-          <div class="album-icon-wrap">
-            <img class="album-icon-img" src="./assets/icons/${lm.id}.png" alt="${lm.name}" loading="lazy" onerror="this.src='./assets/icons/site_01.png'">
+          <div class="album-icon-wrap locked-silhouette">
+            <svg class="album-silhouette-svg" viewBox="0 0 64 64" width="44" height="44" fill="#94a3b8">
+              <path d="M32 8L8 28h8v26h12V38h8v16h12V28h8z" opacity="0.75"/>
+              <circle cx="32" cy="22" r="4" fill="#cbd5e1"/>
+            </svg>
             <span class="album-lock-badge">未探索</span>
           </div>
           <div class="album-item-code">${lm.code}・${lm.districtName.split("・")[0]}</div>
@@ -3022,6 +3070,7 @@ class GameEngine {
       const worldPos = this.camera.screenToWorld(screenX, screenY);
       const snapped = this.map.getClosestWalkablePoint(worldPos.x, worldPos.y);
       this.player.setTarget(snapped.x, snapped.y);
+      this.map.addRipple(snapped.x, snapped.y);
     });
 
     // 接近中的可互動目標（地標或 NPC）

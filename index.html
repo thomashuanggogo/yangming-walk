@@ -53,25 +53,18 @@
         <div id="toast-message" class="toast-popup hidden"></div>
       </section>
 
-      <!-- 下方專屬虛擬手把操控台（直立手持拇指操作區） -->
-      <footer id="gamepad-tray">
-        <div class="dpad-cluster">
-          <button class="ctrl-btn dpad-up" data-dir="up" aria-label="向上移動">▲</button>
-          <div class="dpad-row">
-            <button class="ctrl-btn dpad-left" data-dir="left" aria-label="向左移動">◀</button>
-            <div class="dpad-core"></div>
-            <button class="ctrl-btn dpad-right" data-dir="right" aria-label="向右移動">▶</button>
-          </div>
-          <button class="ctrl-btn dpad-down" data-dir="down" aria-label="向下移動">▼</button>
+      <!-- 下方專屬觸控操作指引列（方案 A：精簡空間回饋全景畫布） -->
+      <footer id="gamepad-tray" class="touch-bar">
+        <div class="touch-hint-group">
+          <svg class="touch-icon-svg" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="9" stroke-dasharray="3 3"/>
+            <circle cx="12" cy="12" r="3" fill="currentColor"/>
+          </svg>
+          <span class="touch-instruction">輕點地圖任一處即可自由漫步</span>
         </div>
-
-        <div class="action-cluster">
-          <button id="btn-action-interact" class="action-btn-large" aria-label="互動與調查">
-            <span class="btn-main-label">調查 / 對話</span>
-            <span class="btn-sub-label">A 鍵</span>
-          </button>
-          <div class="hint-label">支援直接點擊地圖走路</div>
-        </div>
+        <button id="btn-action-interact" class="action-btn-pill" aria-label="互動與對話">
+          <span class="btn-pill-label">調查 / 對話</span>
+        </button>
       </footer>
     </div>
 
@@ -190,7 +183,7 @@
     </div>
   </main>
 
-  <!-- 遊戲核心邏輯（支援本機直接雙擊開啟與 Web 伺服器雙模運行） -->
-  <script src="bundle.js?v=20260916_v9_entrance"></script>
+  <!-- 遊戲核心邏輯（方案 A：精簡觸控操作與零延遲圖鑑） -->
+  <script src="bundle.js?v=20260916_v10_scheme_a"></script>
 </body>
 </html>

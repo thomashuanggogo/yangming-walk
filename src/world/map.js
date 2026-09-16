@@ -10,6 +10,7 @@ export class YangmingMap {
     this.width = 682;
     this.height = 1024;
     this.animTimer = 0;
+    this.ripples = []; // 點擊尋路金黃水波紋動效
 
     // 載入純淨手繪水彩全景底圖（支援防呆相容）
     if (typeof Image !== "undefined") {
@@ -65,8 +66,52 @@ export class YangmingMap {
       ctx.fillText("陽明里手繪散步地圖載入中...", this.width / 2, this.height / 2);
     }
 
-    // 3. 僅在玩家靠近地標時繪製單一互動名稱提示，嚴禁額外繪製任何數字編號
+    // 3. 繪製點擊尋路金黃水波紋
+    this.renderRipples(ctx);
+
+    // 4. 僅在玩家靠近地標時繪製單一互動名稱提示，嚴禁額外繪製任何數字編號
     this.renderNearbyPromptOnly(ctx, playerX, playerY);
+  }
+
+  /**
+   * 觸發點擊尋路金黃水波紋
+   */
+  addRipple(x, y) {
+    this.ripples.push({
+      x,
+      y,
+      radius: 6,
+      maxRadius: 36,
+      alpha: 0.9
+    });
+  }
+
+  /**
+   * 渲染擴散水波紋動效
+   */
+  renderRipples(ctx) {
+    for (let i = this.ripples.length - 1; i >= 0; i--) {
+      const r = this.ripples[i];
+      r.radius += (r.maxRadius - r.radius) * 0.16 + 0.6;
+      r.alpha -= 0.038;
+      if (r.alpha <= 0 || r.radius >= r.maxRadius) {
+        this.ripples.splice(i, 1);
+        continue;
+      }
+      ctx.save();
+      ctx.beginPath();
+      ctx.arc(r.x, r.y, r.radius, 0, Math.PI * 2);
+      ctx.strokeStyle = `rgba(245, 159, 0, ${Math.max(0, r.alpha)})`;
+      ctx.lineWidth = 2.5;
+      ctx.stroke();
+
+      // 核心金黃光點
+      ctx.beginPath();
+      ctx.arc(r.x, r.y, 3.5, 0, Math.PI * 2);
+      ctx.fillStyle = `rgba(255, 209, 102, ${Math.max(0, r.alpha)})`;
+      ctx.fill();
+      ctx.restore();
+    }
   }
 
   /**

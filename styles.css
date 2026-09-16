@@ -210,110 +210,75 @@ html, body {
 }
 
 /* --------------------------------------------------------------------------
-   下方專屬虛擬手把托盤（針對雙手拇指人體工學）
+   下方專屬觸控操作指引列（方案 A：精簡高度釋放畫布視野）
    -------------------------------------------------------------------------- */
-#gamepad-tray {
-  height: 175px;
-  background: linear-gradient(180deg, #2b3034 0%, #1c1f21 100%);
-  border-top: 3px solid #141718;
+#gamepad-tray.touch-bar {
+  height: 54px;
+  background: linear-gradient(180deg, #24292e 0%, #171b1e 100%);
+  border-top: 1.5px solid rgba(255, 255, 255, 0.08);
   display: flex;
   align-items: center;
-  justify-content: space-around;
-  padding: 10px 16px;
+  justify-content: space-between;
+  padding: 0 16px;
+  box-sizing: border-box;
   touch-action: manipulation;
   flex-shrink: 0;
   z-index: 10;
+  box-shadow: 0 -3px 12px rgba(0, 0, 0, 0.28);
 }
 
-/* 十字方向鍵模組 */
-.dpad-cluster {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  width: 140px;
-}
-
-.dpad-row {
+.touch-hint-group {
   display: flex;
   align-items: center;
+  gap: 10px;
+  color: #cbd5e1;
 }
 
-.dpad-core {
-  width: 44px;
-  height: 44px;
-  background-color: #272a2d;
+.touch-icon-svg {
+  color: #fbbf24;
+  animation: pulseRing 2s infinite ease-in-out;
+  flex-shrink: 0;
 }
 
-.ctrl-btn {
-  width: 46px;
-  height: 46px;
-  background: linear-gradient(180deg, #444b50 0%, #303538 100%);
-  border: 1px solid #575e63;
-  color: #d1d5db;
-  font-size: 1.1rem;
+@keyframes pulseRing {
+  0%, 100% { transform: scale(1); opacity: 0.85; }
+  50% { transform: scale(1.15); opacity: 1; }
+}
+
+.touch-instruction {
+  font-size: 0.85rem;
+  font-weight: 500;
+  letter-spacing: 0.3px;
+  color: #e2e8f0;
+}
+
+.action-btn-pill {
+  height: 38px;
+  padding: 0 16px;
+  background: linear-gradient(180deg, #b94a34 0%, #8f3120 100%);
+  border: 1.5px solid #e06c55;
+  border-radius: 20px;
+  color: #ffffff;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  box-shadow: 0 3px 6px rgba(0,0,0,0.5);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
+  transition: transform 0.1s ease, box-shadow 0.1s ease;
   user-select: none;
   -webkit-user-select: none;
 }
 
-.ctrl-btn:active, .ctrl-btn.active {
-  background: #232729;
-  box-shadow: var(--shadow-press);
-  color: #ffea79;
+.action-btn-pill:active {
+  transform: scale(0.96);
+  background: #7a2617;
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.4);
 }
 
-.dpad-up { border-radius: 8px 8px 0 0; }
-.dpad-down { border-radius: 0 0 8px 8px; }
-.dpad-left { border-radius: 8px 0 0 8px; }
-.dpad-right { border-radius: 0 8px 8px 0; }
-
-/* 右側大型動作鍵 */
-.action-cluster {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 8px;
-}
-
-.action-btn-large {
-  width: 110px;
-  height: 64px;
-  background: linear-gradient(180deg, #b94a34 0%, #8f3120 100%);
-  border: 2px solid #e06c55;
-  border-radius: 32px;
-  color: #ffffff;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.4);
-}
-
-.action-btn-large:active {
-  transform: translateY(2px);
-  box-shadow: inset 0 2px 6px rgba(0,0,0,0.5);
-}
-
-.btn-main-label {
-  font-size: 1rem;
+.btn-pill-label {
+  font-size: 0.85rem;
   font-weight: bold;
   letter-spacing: 0.5px;
-}
-
-.btn-sub-label {
-  font-size: 0.72rem;
-  opacity: 0.85;
-}
-
-.hint-label {
-  font-size: 0.72rem;
-  color: #9ca3af;
-  text-align: center;
 }
 
 /* --------------------------------------------------------------------------
@@ -729,8 +694,13 @@ html, body {
   filter: drop-shadow(0 2px 5px rgba(0, 0, 0, 0.15));
 }
 
-.album-item.locked .album-icon-img {
-  filter: grayscale(100%) brightness(0.2) opacity(0.3);
+.album-icon-wrap.locked-silhouette {
+  background: #e7e5e0;
+  border-radius: 8px;
+}
+
+.album-silhouette-svg {
+  filter: drop-shadow(0 1px 3px rgba(0, 0, 0, 0.08));
 }
 
 .album-lock-badge {

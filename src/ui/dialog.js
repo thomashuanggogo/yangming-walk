@@ -399,8 +399,11 @@ export class UIManager {
         });
       } else {
         card.innerHTML = `
-          <div class="album-icon-wrap">
-            <img class="album-icon-img" src="./assets/icons/${lm.id}.png" alt="${lm.name}" loading="lazy" onerror="this.src='./assets/icons/site_01.png'">
+          <div class="album-icon-wrap locked-silhouette">
+            <svg class="album-silhouette-svg" viewBox="0 0 64 64" width="44" height="44" fill="#94a3b8">
+              <path d="M32 8L8 28h8v26h12V38h8v16h12V28h8z" opacity="0.75"/>
+              <circle cx="32" cy="22" r="4" fill="#cbd5e1"/>
+            </svg>
             <span class="album-lock-badge">未探索</span>
           </div>
           <div class="album-item-code">${lm.code}・${lm.districtName.split("・")[0]}</div>
