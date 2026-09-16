@@ -152,7 +152,6 @@ export class UIManager {
     const addressHtml = landmark.address ? `
       <div style="background-color: #f1f5f9; border-radius: 6px; padding: 6px 10px; margin-bottom: 8px; font-size: 0.82rem; color: #334155;">
         <div><strong>門牌地址：</strong>${landmark.address}</div>
-        ${landmark.phone ? `<div><strong>聯絡電話：</strong>${landmark.phone}</div>` : ""}
       </div>
     ` : "";
 

@@ -1,35 +1,33 @@
-﻿@echo off
+@echo off
 chcp 65001 >nul
 echo =========================================
 echo  陽明里漫步指南 - GitHub 一鍵推送工具
 echo =========================================
 echo.
-set /p REPO_URL="請輸入您的 GitHub 倉庫網址 (例如 https://github.com/username/yangming-walk.git): "
-
-if "%REPO_URL%"=="" (
-    echo 錯誤: 未輸入倉庫網址。
-    pause
-    exit /b
-)
+set REPO_URL=https://github.com/thomashuanggogo/yangming-walk.git
+echo 目標倉庫：%REPO_URL%
+echo.
+echo 正在設定遠端倉庫並推送至 main 分支...
 
 git remote remove origin 2>nul
 git remote add origin %REPO_URL%
 git branch -M main
-echo.
-echo 正在推送到 GitHub...
 git push -u origin main
 
 if %errorlevel% equ 0 (
     echo.
     echo =========================================
-    echo  推送成功！
-    echo  請前往 GitHub 該倉庫的 Settings -^> Pages
-    echo  Branch 選擇 main，資料夾選擇 /(root)，點擊 Save
-    echo  等待約 1 分鐘即可取得公開網址分享給里民！
+    echo  [成功] 程式碼已成功推送至 GitHub！
+    echo.
+    echo  請回到剛才開啟的 GitHub Pages 設定頁面：
+    echo  1. 按 F5 重新整理網頁
+    echo  2. Branch 此時將可選擇「main」
+    echo  3. 資料夾維持「/(root)」，點擊「Save」
+    echo  4. 等候 1 分鐘即可取得公開遊玩連結！
     echo =========================================
 ) else (
     echo.
-    echo 推送失敗，請確認網址或 GitHub 登入權限。
+    echo [提示] 若跳出 GitHub 登入確認視窗，請點選「Sign in with your browser」授權。
 )
 echo.
 pause
