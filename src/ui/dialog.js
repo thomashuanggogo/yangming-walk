@@ -1,5 +1,6 @@
 import { CuteHouseRenderer } from "../world/cute_houses.js";
-import { LANDMARKS } from "../world/landmarks.js?v=20260916_v3";
+import { LANDMARKS } from "../world/landmarks.js?v=20260916_v4_audited_addresses";
+import { NpcManager } from "../entities/npc.js";
 
 /**
  * UI 與文化導覽卡片管理器
@@ -179,7 +180,7 @@ export class UIManager {
   }
 
   /**
-   * 顯示在地人物對話卡片
+   * 顯示在地人物對話卡片（黃里長）
    */
   showNpcDialog(npc) {
     if (this.animFrameId) {
@@ -187,15 +188,35 @@ export class UIManager {
       this.animFrameId = null;
     }
 
-    this.dialogTag.textContent = npc.role;
-    this.dialogTag.style.backgroundColor = npc.color || "#2a9d8f";
-    this.dialogTitle.textContent = npc.name;
-    this.dialogVisual.textContent = npc.symbol || "👤";
-    this.dialogVisual.style.backgroundColor = "#e2e8f0";
+    this.dialogTag.textContent = npc.role || "陽明里大家長";
+    this.dialogTag.style.backgroundColor = npc.color || "#1e3a8a";
+    this.dialogTitle.textContent = npc.name || "黃里長";
+
+    // 繪製黃里長專屬精緻卡通頭像
+    this.dialogVisual.innerHTML = "";
+    this.dialogVisual.style.backgroundColor = "#eff6ff";
+    const canvas = document.createElement("canvas");
+    canvas.width = 160;
+    canvas.height = 100;
+    canvas.style.width = "160px";
+    canvas.style.height = "100px";
+    canvas.style.display = "block";
+    canvas.style.margin = "0 auto";
+    const ctx = canvas.getContext("2d");
+    ctx.translate(80, 68);
+    ctx.scale(1.8, 1.8);
+    NpcManager.drawChiefStatic(ctx);
+    this.dialogVisual.appendChild(canvas);
+
+    const speech = npc.dialogue || (Array.isArray(npc.dialog) ? npc.dialog[0] : npc.dialog) || "歡迎來到陽明里！";
+    const tipText = npc.trivia || "陽明里辦公處位於菁山路 34 巷 1 號，隨時歡迎里民與遊客前來交流歇腳。";
+
     this.dialogDesc.innerHTML = `
-      <p style="font-size: 1rem; color: #1e293b; margin-bottom: 10px; line-height: 1.6;">「${npc.dialogue}」</p>
-      <div style="background-color: #f1f5f9; border-left: 3px solid ${npc.color || "#2a9d8f"}; padding: 6px 10px; font-size: 0.85rem; color: #475569;">
-        <strong>志工小叮嚀：</strong>${npc.trivia}
+      <div style="background: #ffffff; border: 1.5px solid #bfdbfe; border-radius: 8px; padding: 12px 14px; margin-bottom: 10px; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
+        <p style="font-size: 1.05rem; color: #1e3a8a; line-height: 1.7; font-weight: bold; margin: 0;">「${speech}」</p>
+      </div>
+      <div style="background-color: #f1f5f9; border-left: 3px solid #1e3a8a; padding: 8px 12px; font-size: 0.85rem; color: #475569; border-radius: 4px;">
+        <strong>里長的話：</strong>${tipText}
       </div>
     `;
 
