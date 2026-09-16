@@ -287,7 +287,7 @@ class CuteHouseRenderer {
         drawRoundRect(ctx, -6, -24, 12, 16, 6, "#38bdf8", "#0284c7", 1);
         break;
 
-      case "13": // 草山御賓館（國定古蹟日式和洋館）
+      case "13": // 草山御賓館（市定古蹟日式和洋館）
         drawRoundRect(ctx, -32, -30, 64, 30, 2, "#451a03", "#291001", 2);
         ctx.fillStyle = "#1e293b";
         ctx.beginPath();
@@ -854,16 +854,16 @@ const LANDMARKS = [
   {
     "id": "site_13",
     "code": "13",
-    "name": "草山御賓館 (國定古蹟)",
-    "category": "國定古蹟",
+    "name": "草山御賓館 (市定古蹟)",
+    "category": "市定古蹟",
     "plusCode": "5H22+99",
     "district": "north",
     "districtName": "北區・草山歷史官舍",
     "x": 375,
     "y": 75,
     "radius": 40,
-    "title": "13 草山御賓館 (國定古蹟)",
-    "description": "日治時期為接待裕仁皇太子所建的和洋風官邸，後為孫科院長寓所，是陽明山唯一的國定古蹟，讓人近距離見證草山近百年政局文史風雲。",
+    "title": "13 草山御賓館 (市定古蹟)",
+    "description": "日治時期為接待裕仁皇太子所建的和洋風官邸，後為孫科院長寓所，是陽明山極具代表性的市定古蹟，讓人近距離見證草山近百年政局文史風雲。",
     "geoLat": 25.15087,
     "geoLon": 121.55088
   },

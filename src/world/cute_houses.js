@@ -283,7 +283,7 @@ export class CuteHouseRenderer {
         drawRoundRect(ctx, -6, -24, 12, 16, 6, "#38bdf8", "#0284c7", 1);
         break;
 
-      case "13": // 草山御賓館（國定古蹟日式和洋館）
+      case "13": // 草山御賓館（市定古蹟日式和洋館）
         drawRoundRect(ctx, -32, -30, 64, 30, 2, "#451a03", "#291001", 2);
         ctx.fillStyle = "#1e293b";
         ctx.beginPath();
