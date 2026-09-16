@@ -3,7 +3,7 @@
  * 管理遊戲主迴圈、相機跟隨、實體更新、接近偵測與互動觸發
  */
 import { YangmingMap } from "../world/map.js";
-import { LANDMARKS } from "../world/landmarks.js?v=20260916_v3";
+import { LANDMARKS } from "../world/landmarks.js";
 import { Player } from "../entities/player.js";
 import { NpcManager } from "../entities/npc.js";
 import { CoinManager } from "../entities/coin.js";
@@ -19,8 +19,9 @@ export class GameEngine {
     // 初始化世界地圖
     this.map = new YangmingMap();
 
-    // 玩家初始起點（位於中央山仔后核心，派出所與麥當勞前方步道）
-    this.player = new Player(340, 470);
+    // 玩家初始起點（位於地圖最底部的仰德大道上山入口，面對黃里長迎賓）
+    this.player = new Player(310, 950);
+    this.player.facing = "up";
 
     // NPC 人物管理器
     this.npcManager = new NpcManager();

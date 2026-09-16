@@ -6,6 +6,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <title>陽明里漫步指南 - 2D 探索遊戲</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌿</text></svg>">
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
@@ -189,7 +190,7 @@
     </div>
   </main>
 
-  <!-- 主邏輯入口（強制破除快取） -->
-  <script type="module" src="./src/main.js?v=20260916_v8_functional_purpose"></script>
+  <!-- 遊戲核心邏輯（支援本機直接雙擊開啟與 Web 伺服器雙模運行） -->
+  <script src="bundle.js?v=20260916_v9_entrance"></script>
 </body>
 </html>

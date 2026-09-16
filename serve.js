@@ -19,6 +19,12 @@ const MIME_TYPES = {
 };
 
 const server = http.createServer((req, res) => {
+  if (req.url === "/favicon.ico") {
+    res.writeHead(204);
+    res.end();
+    return;
+  }
+
   let filePath = path.join(__dirname, req.url === "/" ? "index.html" : req.url.split("?")[0]);
   const ext = path.extname(filePath).toLowerCase();
 
@@ -44,9 +50,10 @@ const server = http.createServer((req, res) => {
   });
 });
 
-server.listen(PORT, () => {
+server.listen(PORT, "0.0.0.0", () => {
   console.log(`=========================================`);
   console.log(`陽明里 2D 遊戲本機伺服器已啟動！`);
   console.log(`請在瀏覽器開啟: http://localhost:${PORT}`);
+  console.log(`或使用區域網路 IP: http://127.0.0.1:${PORT}`);
   console.log(`=========================================`);
 });

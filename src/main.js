@@ -28,6 +28,7 @@ function initGame() {
 
   // 建立遊戲引擎實例
   const game = new GameEngine(canvas);
+  window.game = game;
 
   /**
    * 根據容器寬高動態重設 Canvas 解析度（包含尺寸保底防呆機制）

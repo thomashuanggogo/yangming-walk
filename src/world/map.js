@@ -3,7 +3,7 @@
  * 採用使用者認可之吉卜力/動森風格全景手繪插畫作為真實底圖
  * 零程式畫路、零生硬線條，30 處地標精確錨定於各建築門前
  */
-import { LANDMARKS } from "./landmarks.js?v=20260916_v3";
+import { LANDMARKS } from "./landmarks.js";
 
 export class YangmingMap {
   constructor() {

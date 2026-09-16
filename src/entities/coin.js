@@ -2,7 +2,7 @@
  * 陽明里必經景點金幣收集系統
  * 管理 16 處必經景點與文創地標的動態旋轉金幣、碰撞收集、吸收動效與浮動文字
  */
-import { LANDMARKS } from "../world/landmarks.js?v=20260916_v3";
+import { LANDMARKS } from "../world/landmarks.js";
 
 export class CoinManager {
   constructor(onCoinCollected = null) {

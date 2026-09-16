@@ -1,5 +1,5 @@
 import { CuteHouseRenderer } from "../world/cute_houses.js";
-import { LANDMARKS } from "../world/landmarks.js?v=20260916_v4_audited_addresses";
+import { LANDMARKS } from "../world/landmarks.js";
 import { NpcManager } from "../entities/npc.js";
 
 /**
