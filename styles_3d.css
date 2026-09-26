@@ -39,20 +39,27 @@ html, body {
   touch-action: none;
 }
 
-/* 3D UI 頂層覆蓋層 */
+/* 3D UI 頂層覆蓋層：全部穿透至底層 3D 畫布 */
 #voxel-ui-container {
   position: absolute;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
-  pointer-events: none; /* 穿透至 3D 畫布 */
+  pointer-events: none;
   overflow: hidden;
   font-size: 16px;
 }
 
-/* 允許 UI 內部組件點擊 */
-#voxel-ui-container > * {
+/* 僅針對具備互動性的按鈕與卡片本體啟用點擊 */
+.voxel-badge-title,
+.voxel-btn-view,
+.voxel-circle-stat,
+.voxel-btn-album,
+.voxel-btn-entrance,
+.voxel-action-btn,
+.voxel-story-card,
+.voxel-album-card {
   pointer-events: auto;
 }
 
@@ -354,7 +361,8 @@ html, body {
 
 .voxel-modal-backdrop.hidden {
   opacity: 0;
-  pointer-events: none;
+  pointer-events: none !important;
+  display: none !important;
 }
 
 /* 地標故事卡 (還原截圖 2) */

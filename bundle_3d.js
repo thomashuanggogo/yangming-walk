@@ -2134,11 +2134,13 @@ class VoxelGame {
   initRaycaster() {
     this.raycaster = new THREE.Raycaster();
     this.pointer = new THREE.Vector2();
+    const groundPlane = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0);
+    const planeHit = new THREE.Vector3();
 
     // 點擊地面移動 (Tap to move - 還原提示「用手指點一下地面，小人就會走過去」)
-    let touchStartTime = 0;
-    let touchStartX = 0;
-    let touchStartY = 0;
+    let pointerStartX = 0;
+    let pointerStartY = 0;
+    let pointerStartTime = 0;
 
     const handlePointerTap = (clientX, clientY) => {
       const rect = this.canvas.getBoundingClientRect();
@@ -2146,44 +2148,65 @@ class VoxelGame {
       this.pointer.y = -((clientY - rect.top) / rect.height) * 2 + 1;
 
       this.raycaster.setFromCamera(this.pointer, this.camera);
-      const intersects = this.raycaster.intersectObjects(this.terrain.clickableObjects, true);
 
-      if (intersects.length > 0) {
-        const hitPoint = intersects[0].point;
-        // 小人走向點擊位置
-        this.player.moveTo(hitPoint.x, hitPoint.z);
-        // 地面擴散光圈漣漪
-        this.terrain.spawnRipple(hitPoint.x, hitPoint.z);
+      let hitX = null;
+      let hitZ = null;
+
+      // 1. 透過 y=0 地面數學平面相交 (覆蓋整座大地，保證 100% 瞬時精準響應)
+      if (this.raycaster.ray.intersectPlane(groundPlane, planeHit)) {
+        hitX = THREE.MathUtils.clamp(planeHit.x, -135, 135);
+        hitZ = THREE.MathUtils.clamp(planeHit.z, -135, 135);
+      } else {
+        // 2. Mesh 保底相交
+        const intersects = this.raycaster.intersectObjects(this.terrain.clickableObjects, true);
+        if (intersects.length > 0) {
+          hitX = intersects[0].point.x;
+          hitZ = intersects[0].point.z;
+        }
+      }
+
+      if (hitX !== null && hitZ !== null) {
+        // 小人平滑轉向並走向目標位置
+        this.player.moveTo(hitX, hitZ);
+        // 地面擴散青綠色光圈漣漪
+        this.terrain.spawnRipple(hitX, hitZ);
       }
     };
 
-    // 滑鼠點擊
-    this.canvas.addEventListener('click', (e) => {
-      if (e.button === 0) {
+    // 監聽 PointerDown 記錄起始座標
+    window.addEventListener('pointerdown', (e) => {
+      pointerStartX = e.clientX;
+      pointerStartY = e.clientY;
+      pointerStartTime = Date.now();
+    });
+
+    // 監聽 PointerUp 判斷輕點尋路
+    window.addEventListener('pointerup', (e) => {
+      // 若點擊到 UI 按鈕或卡片元件，不觸發尋路
+      if (e.target && e.target.closest('button, .voxel-action-btn, .voxel-story-card, .voxel-album-card, .voxel-circle-stat, .voxel-btn-view, .voxel-badge-title')) {
+        return;
+      }
+
+      // 滑鼠左鍵 (button 0) 或觸控才觸發移動 (右鍵 button 2 用於旋轉鏡頭)
+      if (e.pointerType === 'mouse' && e.button !== 0) {
+        return;
+      }
+
+      const dx = e.clientX - pointerStartX;
+      const dy = e.clientY - pointerStartY;
+      const dist = Math.hypot(dx, dy);
+      const duration = Date.now() - pointerStartTime;
+
+      // 位移小於 12px 且時間在 600ms 內，視為點擊地面漫步
+      if (dist < 12 && duration < 600) {
         handlePointerTap(e.clientX, e.clientY);
       }
     });
 
-    // 觸控點擊 (過濾長按拖曳，保留輕點)
-    this.canvas.addEventListener('touchstart', (e) => {
-      if (e.touches.length === 1) {
-        touchStartTime = Date.now();
-        touchStartX = e.touches[0].clientX;
-        touchStartY = e.touches[0].clientY;
-      }
-    }, { passive: true });
-
-    this.canvas.addEventListener('touchend', (e) => {
-      if (e.changedTouches.length === 1) {
-        const duration = Date.now() - touchStartTime;
-        const dx = e.changedTouches[0].clientX - touchStartX;
-        const dy = e.changedTouches[0].clientY - touchStartY;
-        const dist = Math.hypot(dx, dy);
-
-        // 若短時間且位移極小，視為點擊地面尋路
-        if (duration < 300 && dist < 15) {
-          handlePointerTap(e.changedTouches[0].clientX, e.changedTouches[0].clientY);
-        }
+    // 支援標準 click 事件保底
+    this.canvas.addEventListener('click', (e) => {
+      if (e.button === 0) {
+        handlePointerTap(e.clientX, e.clientY);
       }
     });
   }
