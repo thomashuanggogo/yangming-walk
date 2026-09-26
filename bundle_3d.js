@@ -1927,14 +1927,15 @@ class VoxelGame {
     // 鍵盤狀態
     this.keys = { forward: false, backward: false, left: false, right: false };
 
-    // 視角模式定義 (斜俯視 45°、沉浸平視、上空俯視)
+    // 視角模式配置 (斜俯視 45°、沉浸平視、上空俯視)
     this.viewModes = [
       {
         id: 'iso',
         name: '45° 斜俯視',
         shortName: '斜視',
         icon: '📐',
-        offset: new THREE.Vector3(0, 11, 13),
+        pitch: 0.82,     // 約 47 度俯角
+        distance: 17,    // 舒適視距
         lookAtOffsetY: 1.2
       },
       {
@@ -1942,7 +1943,8 @@ class VoxelGame {
         name: '沉浸平視',
         shortName: '平視',
         icon: '👀',
-        offset: new THREE.Vector3(0, 2.5, 5.0),
+        pitch: 1.35,     // 約 77 度，平視街道與門面
+        distance: 7.5,   // 近身視距
         lookAtOffsetY: 1.6
       },
       {
@@ -1950,26 +1952,38 @@ class VoxelGame {
         name: '上空俯視',
         shortName: '俯視',
         icon: '🦅',
-        offset: new THREE.Vector3(0, 36, 4),
+        pitch: 0.15,     // 約 8 度，高空垂直俯視
+        distance: 38,    // 沙盤高空
         lookAtOffsetY: 0
       }
     ];
     this.currentViewIndex = 0;
-    this.targetOffset = this.viewModes[0].offset.clone();
-    this.cameraOffset = this.targetOffset.clone();
-    this.currentLookAtY = this.viewModes[0].lookAtOffsetY;
+
+    // 球面相機參數 (支援滑鼠 360 度水平旋轉、垂直俯仰、滾輪縮放)
+    const initialMode = this.viewModes[0];
+    this.cameraYaw = 0;
+    this.cameraPitch = initialMode.pitch;
+    this.cameraDistance = initialMode.distance;
+    this.targetPitch = initialMode.pitch;
+    this.targetDistance = initialMode.distance;
+    this.currentLookAtY = initialMode.lookAtOffsetY;
     this.cameraTarget = new THREE.Vector3();
-    this.cameraYaw = 0; // 水平視角偏角
 
     this.initScene();
     this.initLights();
     this.initWorld();
     this.initControls();
-    this.initRaycaster();
 
-    // 初始鏡頭立刻精準對準主角小人
+    // 初始鏡頭精準就位對準主角小人
     this.cameraTarget.copy(this.player.group.position);
-    this.camera.position.copy(this.cameraTarget).add(this.cameraOffset);
+    const initDist = this.cameraDistance;
+    const initPitch = this.cameraPitch;
+    const initYaw = this.cameraYaw;
+    this.camera.position.set(
+      this.cameraTarget.x + initDist * Math.sin(initPitch) * Math.sin(initYaw),
+      this.cameraTarget.y + initDist * Math.cos(initPitch),
+      this.cameraTarget.z + initDist * Math.sin(initPitch) * Math.cos(initYaw)
+    );
     this.camera.lookAt(this.cameraTarget.x, this.cameraTarget.y + this.currentLookAtY, this.cameraTarget.z);
 
     this.ui = new VoxelUI(this);
@@ -2101,112 +2115,95 @@ class VoxelGame {
       }
     });
 
-    // 拖曳旋轉視野 (滑鼠右鍵或手機單指橫向拖曳)
-    let isDragging = false;
+    // === 滑鼠與觸控統一互動 (按住拖曳旋轉視野 / 輕點地面尋路漫步) ===
+    let isPointerDown = false;
+    let hasDragged = false;
+    let startX = 0;
+    let startY = 0;
     let lastX = 0;
+    let lastY = 0;
+    let startTime = 0;
+    let pointerButton = 0;
 
-    const onPointerDown = (e) => {
-      if (e.button === 2 || e.touches) {
-        isDragging = true;
-        lastX = e.clientX || (e.touches && e.touches[0].clientX);
-      }
-    };
-
-    const onPointerMove = (e) => {
-      if (!isDragging) return;
-      const currentX = e.clientX || (e.touches && e.touches[0].clientX);
-      const deltaX = currentX - lastX;
-      lastX = currentX;
-      this.cameraYaw -= deltaX * 0.006;
-    };
-
-    const onPointerUp = () => {
-      isDragging = false;
-    };
-
-    this.canvas.addEventListener('mousedown', onPointerDown);
-    window.addEventListener('mousemove', onPointerMove);
-    window.addEventListener('mouseup', onPointerUp);
-
-    this.canvas.addEventListener('contextmenu', (e) => e.preventDefault());
-  }
-
-  initRaycaster() {
-    this.raycaster = new THREE.Raycaster();
-    this.pointer = new THREE.Vector2();
     const groundPlane = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0);
     const planeHit = new THREE.Vector3();
+    const raycaster = new THREE.Raycaster();
+    const pointer = new THREE.Vector2();
 
-    // 點擊地面移動 (Tap to move - 還原提示「用手指點一下地面，小人就會走過去」)
-    let pointerStartX = 0;
-    let pointerStartY = 0;
-    let pointerStartTime = 0;
-
-    const handlePointerTap = (clientX, clientY) => {
+    const doTapMove = (clientX, clientY) => {
       const rect = this.canvas.getBoundingClientRect();
-      this.pointer.x = ((clientX - rect.left) / rect.width) * 2 - 1;
-      this.pointer.y = -((clientY - rect.top) / rect.height) * 2 + 1;
+      pointer.x = ((clientX - rect.left) / rect.width) * 2 - 1;
+      pointer.y = -((clientY - rect.top) / rect.height) * 2 + 1;
 
-      this.raycaster.setFromCamera(this.pointer, this.camera);
-
-      let hitX = null;
-      let hitZ = null;
-
-      // 1. 透過 y=0 地面數學平面相交 (覆蓋整座大地，保證 100% 瞬時精準響應)
-      if (this.raycaster.ray.intersectPlane(groundPlane, planeHit)) {
-        hitX = THREE.MathUtils.clamp(planeHit.x, -135, 135);
-        hitZ = THREE.MathUtils.clamp(planeHit.z, -135, 135);
-      } else {
-        // 2. Mesh 保底相交
-        const intersects = this.raycaster.intersectObjects(this.terrain.clickableObjects, true);
-        if (intersects.length > 0) {
-          hitX = intersects[0].point.x;
-          hitZ = intersects[0].point.z;
-        }
-      }
-
-      if (hitX !== null && hitZ !== null) {
-        // 小人平滑轉向並走向目標位置
+      raycaster.setFromCamera(pointer, this.camera);
+      if (raycaster.ray.intersectPlane(groundPlane, planeHit)) {
+        const hitX = THREE.MathUtils.clamp(planeHit.x, -135, 135);
+        const hitZ = THREE.MathUtils.clamp(planeHit.z, -135, 135);
         this.player.moveTo(hitX, hitZ);
-        // 地面擴散青綠色光圈漣漪
         this.terrain.spawnRipple(hitX, hitZ);
       }
     };
 
-    // 監聽 PointerDown 記錄起始座標
     window.addEventListener('pointerdown', (e) => {
-      pointerStartX = e.clientX;
-      pointerStartY = e.clientY;
-      pointerStartTime = Date.now();
-    });
-
-    // 監聽 PointerUp 判斷輕點尋路
-    window.addEventListener('pointerup', (e) => {
-      // 若點擊到 UI 按鈕或卡片元件，不觸發尋路
+      // 點在 UI 卡片或按鈕上不啟動拖曳或尋路
       if (e.target && e.target.closest('button, .voxel-action-btn, .voxel-story-card, .voxel-album-card, .voxel-circle-stat, .voxel-btn-view, .voxel-badge-title')) {
         return;
       }
 
-      // 滑鼠左鍵 (button 0) 或觸控才觸發移動 (右鍵 button 2 用於旋轉鏡頭)
-      if (e.pointerType === 'mouse' && e.button !== 0) {
-        return;
+      isPointerDown = true;
+      hasDragged = false;
+      startX = e.clientX;
+      startY = e.clientY;
+      lastX = e.clientX;
+      lastY = e.clientY;
+      startTime = Date.now();
+      pointerButton = e.button;
+    });
+
+    window.addEventListener('pointermove', (e) => {
+      if (!isPointerDown) return;
+
+      const deltaX = e.clientX - lastX;
+      const deltaY = e.clientY - lastY;
+      lastX = e.clientX;
+      lastY = e.clientY;
+
+      const totalDist = Math.hypot(e.clientX - startX, e.clientY - startY);
+      if (totalDist > 5) {
+        hasDragged = true;
       }
 
-      const dx = e.clientX - pointerStartX;
-      const dy = e.clientY - pointerStartY;
-      const dist = Math.hypot(dx, dy);
-      const duration = Date.now() - pointerStartTime;
-
-      // 位移小於 12px 且時間在 600ms 內，視為點擊地面漫步
-      if (dist < 12 && duration < 600) {
-        handlePointerTap(e.clientX, e.clientY);
+      if (hasDragged) {
+        // 水平 360 度旋轉 (Yaw)
+        this.cameraYaw -= deltaX * 0.007;
+        // 垂直俯仰 (Pitch) - 限制在 0.12 (俯視) 到 1.45 (接近水平) 之間
+        this.cameraPitch = THREE.MathUtils.clamp(this.cameraPitch + deltaY * 0.006, 0.12, 1.45);
+        this.targetPitch = this.cameraPitch;
       }
     });
 
-    // 支援標準 click 事件保底
-    this.canvas.addEventListener('click', (e) => {
-      if (e.button === 0) {
-        handlePointerTap(e.clientX, e.clientY);
+    window.addEventListener('pointerup', (e) => {
+      if (!isPointerDown) return;
+      isPointerDown = false;
+
+      const totalDist = Math.hypot(e.clientX - startX, e.clientY - startY);
+      const duration = Date.now() - startTime;
+
+      // 若未拖曳（位移 < 8px 且時間在 600ms 內），且按的是左鍵或手指輕點，觸發點擊地面漫步！
+      if (!hasDragged && totalDist < 8 && duration < 600 && pointerButton === 0) {
+        doTapMove(e.clientX, e.clientY);
+      }
+    });
+
+    // 支援滑鼠滾輪縮放視野 (Zoom In / Zoom Out)
+    window.addEventListener('wheel', (e) => {
+      this.targetDistance = THREE.MathUtils.clamp(this.targetDistance + e.deltaY * 0.025, 4.5, 60);
+    }, { passive: true });
+
+    // 防止右鍵選單彈出干擾旋轉
+    window.addEventListener('contextmenu', (e) => {
+      if (!e.target.closest('input, textarea')) {
+        e.preventDefault();
       }
     });
   }
@@ -2287,7 +2284,8 @@ class VoxelGame {
   cycleViewMode() {
     this.currentViewIndex = (this.currentViewIndex + 1) % this.viewModes.length;
     const currentMode = this.viewModes[this.currentViewIndex];
-    this.targetOffset.copy(currentMode.offset);
+    this.targetPitch = currentMode.pitch;
+    this.targetDistance = currentMode.distance;
     return currentMode;
   }
 
@@ -2296,23 +2294,35 @@ class VoxelGame {
   }
 
   updateCamera() {
-    // 平滑鏡頭越肩跟隨主角
+    // 平滑鏡頭目標跟隨主角
     const playerPos = this.player.group.position;
     this.cameraTarget.lerp(playerPos, 0.08);
 
-    // 平滑過渡視角 Offset 與 LookAt 高度
+    // 平滑過渡距離、俯仰角與 LookAt 高度
+    this.cameraDistance = THREE.MathUtils.lerp(this.cameraDistance, this.targetDistance, 0.08);
+    this.cameraPitch = THREE.MathUtils.lerp(this.cameraPitch, this.targetPitch, 0.08);
     const curMode = this.viewModes[this.currentViewIndex];
-    this.cameraOffset.lerp(this.targetOffset, 0.08);
     this.currentLookAtY = THREE.MathUtils.lerp(this.currentLookAtY, curMode.lookAtOffsetY, 0.08);
 
-    // 根據視角偏角計算鏡頭 offset
-    const rotatedOffset = this.cameraOffset.clone().applyAxisAngle(new THREE.Vector3(0, 1, 0), this.cameraYaw);
-    const targetCameraPos = this.cameraTarget.clone().add(rotatedOffset);
+    // 球面座標換算相機相對位置 (支援 360 度任意旋轉、俯仰、拉近拉遠)
+    const dist = this.cameraDistance;
+    const pitch = this.cameraPitch;
+    const yaw = this.cameraYaw;
 
-    this.camera.position.lerp(targetCameraPos, 0.08);
+    const offsetX = dist * Math.sin(pitch) * Math.sin(yaw);
+    const offsetY = dist * Math.cos(pitch);
+    const offsetZ = dist * Math.sin(pitch) * Math.cos(yaw);
+
+    const targetCameraPos = new THREE.Vector3(
+      this.cameraTarget.x + offsetX,
+      this.cameraTarget.y + offsetY,
+      this.cameraTarget.z + offsetZ
+    );
+
+    this.camera.position.lerp(targetCameraPos, 0.1);
     this.camera.lookAt(this.cameraTarget.x, this.cameraTarget.y + this.currentLookAtY, this.cameraTarget.z);
 
-    // 讓陽光平行跟隨主角，保證陰影精緻細膩
+    // 陽光平行跟隨主角，維持細緻陰影
     this.sunLight.position.set(playerPos.x + 30, 45, playerPos.z + 25);
     this.sunLight.target.position.copy(playerPos);
     this.sunLight.target.updateMatrixWorld();
