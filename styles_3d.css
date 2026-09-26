@@ -165,6 +165,59 @@ html, body {
   transform: scale(0.94);
 }
 
+/* 視角切換按鈕 (斜俯視 / 沉浸平視 / 上空俯視) */
+.voxel-btn-view {
+  background: #ffffff;
+  color: #4a3e35;
+  border: 2px solid #8c6e54;
+  border-radius: 20px;
+  padding: 8px 14px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 14px;
+  font-weight: 800;
+  cursor: pointer;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+  transition: transform 0.15s ease, background 0.2s;
+}
+
+.voxel-btn-view:hover {
+  background: #fbf7ee;
+}
+
+.voxel-btn-view:active {
+  transform: scale(0.92);
+}
+
+.voxel-btn-view .view-icon {
+  font-size: 16px;
+}
+
+/* 浮動提示 Toast (置中淡入淡出) */
+.voxel-toast-msg {
+  position: absolute;
+  top: 90px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(30, 24, 18, 0.88);
+  backdrop-filter: blur(8px);
+  color: #ffd166;
+  font-size: 15px;
+  font-weight: 700;
+  padding: 8px 20px;
+  border-radius: 20px;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.3);
+  pointer-events: none;
+  z-index: 1000;
+  transition: opacity 0.25s ease, transform 0.25s ease;
+}
+
+.voxel-toast-msg.hidden {
+  opacity: 0;
+  transform: translateX(-50%) translateY(-10px);
+}
+
 /* ==========================================
    3. 右下角入口按鈕 (還原截圖 3 & 4)
    ========================================== */

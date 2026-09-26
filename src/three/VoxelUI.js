@@ -55,8 +55,14 @@ export class VoxelUI {
         <span class="sub-text">3D 方塊版</span>
       </div>
 
-      <!-- 右上角圖鑑按鈕與計數 -->
+      <!-- 右上角圖鑑與視角按鈕群 -->
       <div class="voxel-album-top-group">
+        <!-- 視角切換按鈕 -->
+        <button id="btn-toggle-camera-view" class="voxel-btn-view" title="切換鏡頭視角 (按 V 鍵)">
+          <span id="view-mode-icon" class="view-icon">📐</span>
+          <span id="view-mode-name" class="view-label">斜視</span>
+        </button>
+
         <div id="btn-album-circle" class="voxel-circle-stat" title="開啟圖鑑">
           <span class="stat-book-icon">📖</span>
           <span class="stat-title">圖鑑</span>
@@ -64,6 +70,9 @@ export class VoxelUI {
         </div>
         <button id="btn-open-album-card" class="voxel-btn-album">圖鑑</button>
       </div>
+
+      <!-- 視角切換浮動 Toast 提示 -->
+      <div id="voxel-toast" class="voxel-toast-msg hidden"></div>
 
       <!-- 右下角快速回到入口鈕 -->
       <button id="btn-goto-entrance" class="voxel-btn-entrance" title="回到起點入口">
@@ -145,6 +154,11 @@ export class VoxelUI {
   }
 
   bindEvents() {
+    // 視角切換按鈕
+    document.getElementById('btn-toggle-camera-view').addEventListener('click', () => {
+      this.triggerViewModeCycle();
+    });
+
     // 圖鑑開關
     document.getElementById('btn-album-circle').addEventListener('click', () => this.openAlbumModal());
     document.getElementById('btn-open-album-card').addEventListener('click', () => this.openAlbumModal());
@@ -371,5 +385,27 @@ export class VoxelUI {
 
       listScroll.appendChild(groupDiv);
     });
+  }
+
+  triggerViewModeCycle() {
+    const nextMode = this.game.cycleViewMode();
+    const iconEl = document.getElementById('view-mode-icon');
+    const labelEl = document.getElementById('view-mode-name');
+    if (iconEl) iconEl.innerText = nextMode.icon;
+    if (labelEl) labelEl.innerText = nextMode.shortName;
+
+    this.showToast(`已切換視角：${nextMode.name}`);
+  }
+
+  showToast(msg) {
+    const toast = document.getElementById('voxel-toast');
+    if (!toast) return;
+    toast.innerText = msg;
+    toast.classList.remove('hidden');
+
+    if (this.toastTimer) clearTimeout(this.toastTimer);
+    this.toastTimer = setTimeout(() => {
+      toast.classList.add('hidden');
+    }, 1500);
   }
 }

@@ -16,10 +16,39 @@ export class VoxelGame {
     // 鍵盤狀態
     this.keys = { forward: false, backward: false, left: false, right: false };
 
-    // 相機跟隨與視角參數 (斜俯角 45 度，如截圖 4)
-    this.cameraOffset = new THREE.Vector3(0, 11, 13);
+    // 視角模式定義 (斜俯視 45°、沉浸平視、上空俯視)
+    this.viewModes = [
+      {
+        id: 'iso',
+        name: '45° 斜俯視',
+        shortName: '斜視',
+        icon: '📐',
+        offset: new THREE.Vector3(0, 11, 13),
+        lookAtOffsetY: 1.2
+      },
+      {
+        id: 'eye',
+        name: '沉浸平視',
+        shortName: '平視',
+        icon: '👀',
+        offset: new THREE.Vector3(0, 2.5, 5.0),
+        lookAtOffsetY: 1.6
+      },
+      {
+        id: 'top',
+        name: '上空俯視',
+        shortName: '俯視',
+        icon: '🦅',
+        offset: new THREE.Vector3(0, 36, 4),
+        lookAtOffsetY: 0
+      }
+    ];
+    this.currentViewIndex = 0;
+    this.targetOffset = this.viewModes[0].offset.clone();
+    this.cameraOffset = this.targetOffset.clone();
+    this.currentLookAtY = this.viewModes[0].lookAtOffsetY;
     this.cameraTarget = new THREE.Vector3();
-    this.cameraYaw = 0; // 水平視角微調角度
+    this.cameraYaw = 0; // 水平視角偏角
 
     this.initScene();
     this.initLights();
@@ -30,7 +59,7 @@ export class VoxelGame {
     // 初始鏡頭立刻精準對準主角小人
     this.cameraTarget.copy(this.player.group.position);
     this.camera.position.copy(this.cameraTarget).add(this.cameraOffset);
-    this.camera.lookAt(this.cameraTarget.x, this.cameraTarget.y + 1.2, this.cameraTarget.z);
+    this.camera.lookAt(this.cameraTarget.x, this.cameraTarget.y + this.currentLookAtY, this.cameraTarget.z);
 
     this.ui = new VoxelUI(this);
 
@@ -132,6 +161,10 @@ export class VoxelGame {
         case 'd':
         case 'arrowright':
           this.keys.right = true;
+          break;
+        case 'v':
+        case 'c':
+          this.ui.triggerViewModeCycle();
           break;
       }
     });
@@ -317,20 +350,36 @@ export class VoxelGame {
     this.ui.setProximityStatus(nearestLandmark, nearChief);
   }
 
+  cycleViewMode() {
+    this.currentViewIndex = (this.currentViewIndex + 1) % this.viewModes.length;
+    const currentMode = this.viewModes[this.currentViewIndex];
+    this.targetOffset.copy(currentMode.offset);
+    return currentMode;
+  }
+
+  getCurrentViewMode() {
+    return this.viewModes[this.currentViewIndex];
+  }
+
   updateCamera() {
     // 平滑鏡頭越肩跟隨主角
     const playerPos = this.player.group.position;
     this.cameraTarget.lerp(playerPos, 0.08);
+
+    // 平滑過渡視角 Offset 與 LookAt 高度
+    const curMode = this.viewModes[this.currentViewIndex];
+    this.cameraOffset.lerp(this.targetOffset, 0.08);
+    this.currentLookAtY = THREE.MathUtils.lerp(this.currentLookAtY, curMode.lookAtOffsetY, 0.08);
 
     // 根據視角偏角計算鏡頭 offset
     const rotatedOffset = this.cameraOffset.clone().applyAxisAngle(new THREE.Vector3(0, 1, 0), this.cameraYaw);
     const targetCameraPos = this.cameraTarget.clone().add(rotatedOffset);
 
     this.camera.position.lerp(targetCameraPos, 0.08);
-    this.camera.lookAt(this.cameraTarget.x, this.cameraTarget.y + 1.2, this.cameraTarget.z);
+    this.camera.lookAt(this.cameraTarget.x, this.cameraTarget.y + this.currentLookAtY, this.cameraTarget.z);
 
     // 讓陽光平行跟隨主角，保證陰影精緻細膩
-    this.sunLight.position.set(playerPos.x + 35, 60, playerPos.z + 25);
+    this.sunLight.position.set(playerPos.x + 30, 45, playerPos.z + 25);
     this.sunLight.target.position.copy(playerPos);
     this.sunLight.target.updateMatrixWorld();
   }
