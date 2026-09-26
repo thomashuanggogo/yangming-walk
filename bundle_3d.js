@@ -726,58 +726,18 @@ class VoxelTerrain {
   }
 
   buildTerrain() {
-    // 總基地大地板 (以 0,0 為山仔后核心，範圍大約 280 x 280)
-    const baseGeo = new THREE.BoxGeometry(260, 2, 260);
+    // 總基地大地板 (以 0,0 為山仔后核心，範圍 280 x 280，完全平坦，y=0 為地面基準)
+    const baseGeo = new THREE.BoxGeometry(280, 1, 280);
     const baseMesh = new THREE.Mesh(baseGeo, this.materials.grassTop);
-    baseMesh.position.y = -1;
+    baseMesh.position.y = -0.5;
     baseMesh.receiveShadow = true;
     this.group.add(baseMesh);
     this.clickableObjects.push(baseMesh);
 
-    // 梯田高低起伏方塊 (階梯等高線台地，符合陽明山地形)
-    const terraces = [
-      // 北側較高台地 (草山官舍/美軍宿舍F區)
-      { x: 0, z: -80, w: 180, d: 70, h: 1.2 },
-      { x: -20, z: -95, w: 120, d: 45, h: 2.4 },
-      // 東側小丘陵 (美軍宿舍C區/亞尼克方向)
-      { x: 75, z: -10, w: 85, d: 110, h: 1.2 },
-      { x: 90, z: -20, w: 50, d: 70, h: 2.4 },
-      // 西側往文大下坡段
-      { x: -80, z: 20, w: 75, d: 100, h: -0.6 },
-      // 南側花卉試驗中心與愛富二街台地
-      { x: 10, z: 75, w: 160, d: 80, h: 1.0 },
-      { x: 30, z: 90, w: 100, d: 50, h: 2.0 }
-    ];
-
-    terraces.forEach(t => {
-      const geo = new THREE.BoxGeometry(t.w, Math.abs(t.h) + 2, t.d);
-      const mat = t.h > 1.5 ? this.materials.grassHigh : this.materials.grassTop;
-      const mesh = new THREE.Mesh(geo, mat);
-      mesh.position.set(t.x, t.h / 2, t.z);
-      mesh.receiveShadow = true;
-      mesh.castShadow = true;
-      this.group.add(mesh);
-      this.clickableObjects.push(mesh);
-    });
-
-    // 散佈多組微幅起伏草階
-    const steps = [
-      { x: -35, z: -40, w: 16, d: 14, h: 0.8 },
-      { x: -50, z: -35, w: 14, d: 12, h: 1.6 },
-      { x: 40, z: -45, w: 20, d: 18, h: 0.8 },
-      { x: 55, z: 30, w: 24, d: 20, h: 0.8 },
-      { x: -45, z: 50, w: 20, d: 20, h: 0.8 },
-      { x: -10, z: -20, w: 14, d: 14, h: 0.6 }
-    ];
-    steps.forEach(s => {
-      const geo = new THREE.BoxGeometry(s.w, s.h, s.d);
-      const mesh = new THREE.Mesh(geo, this.materials.grassTop);
-      mesh.position.set(s.x, s.h / 2, s.z);
-      mesh.receiveShadow = true;
-      mesh.castShadow = true;
-      this.group.add(mesh);
-      this.clickableObjects.push(mesh);
-    });
+    // 平坦的方塊草地網格線 (如截圖般一格一格的 Minecraft 像素方塊感，完全平整無起伏)
+    const gridHelper = new THREE.GridHelper(280, 140, 0x568c31, 0x619b38);
+    gridHelper.position.y = 0.01;
+    this.group.add(gridHelper);
   }
 
   buildRoads() {
