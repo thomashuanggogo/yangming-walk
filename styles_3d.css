@@ -1,0 +1,592 @@
+/* ============================================================
+   陽明里漫步 3D 方塊版 - 專屬樣式表 (styles_3d.css)
+   1:1 還原截圖中的 Minecraft / Voxel 治癒系手繪與體素風格
+   ============================================================ */
+
+:root {
+  --primary-teal: #2a9d8f;
+  --primary-teal-hover: #21867a;
+  --accent-orange: #ea8a26;
+  --accent-orange-hover: #d67a1c;
+  --card-bg: #fdfbf7;
+  --card-border: #e3d9c6;
+  --text-dark: #3c3228;
+  --text-muted: #8c827a;
+  --dist-badge-bg: #80684a;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+}
+
+html, body {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background-color: #a7d8ff;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "PingFang TC", "Microsoft JhengHei", sans-serif;
+}
+
+/* 遊戲全屏 3D Canvas 容器 */
+#game-canvas-3d {
+  width: 100vw;
+  height: 100vh;
+  display: block;
+  touch-action: none;
+}
+
+/* 3D UI 頂層覆蓋層 */
+#voxel-ui-container {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none; /* 穿透至 3D 畫布 */
+  overflow: hidden;
+  font-size: 16px;
+}
+
+/* 允許 UI 內部組件點擊 */
+#voxel-ui-container > * {
+  pointer-events: auto;
+}
+
+/* ==========================================
+   1. 左上角遊戲標題膠囊 (還原截圖 1 & 4)
+   ========================================== */
+.voxel-badge-title {
+  position: absolute;
+  top: 16px;
+  left: 16px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(45, 38, 30, 0.65);
+  backdrop-filter: blur(8px);
+  padding: 8px 16px;
+  border-radius: 24px;
+  color: #ffffff;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.voxel-badge-title .brick-icon {
+  font-size: 18px;
+}
+
+.voxel-badge-title .title-text {
+  font-size: 17px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+}
+
+.voxel-badge-title .sub-text {
+  font-size: 12px;
+  color: #e0d5c1;
+  background: rgba(255, 255, 255, 0.15);
+  padding: 2px 6px;
+  border-radius: 8px;
+  margin-left: 2px;
+}
+
+/* ==========================================
+   2. 右上角圖鑑圓形進度與按鈕 (還原截圖 1 & 4)
+   ========================================== */
+.voxel-album-top-group {
+  position: absolute;
+  top: 14px;
+  right: 16px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.voxel-circle-stat {
+  width: 62px;
+  height: 62px;
+  background: #f7efe1;
+  border: 3px solid #8c6e54;
+  border-radius: 50%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+  cursor: pointer;
+  transition: transform 0.15s ease;
+}
+
+.voxel-circle-stat:active {
+  transform: scale(0.92);
+}
+
+.voxel-circle-stat .stat-book-icon {
+  font-size: 13px;
+  line-height: 1;
+}
+
+.voxel-circle-stat .stat-title {
+  font-size: 11px;
+  font-weight: 700;
+  color: #5a4531;
+  line-height: 1.1;
+}
+
+.voxel-circle-stat .stat-count {
+  font-size: 13px;
+  font-weight: 800;
+  color: #8c431b;
+  line-height: 1.1;
+}
+
+.voxel-btn-album {
+  background: var(--primary-teal);
+  color: #ffffff;
+  border: 2px solid rgba(255, 255, 255, 0.4);
+  padding: 10px 18px;
+  border-radius: 20px;
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(42, 157, 143, 0.4);
+  transition: transform 0.15s ease, background 0.2s;
+}
+
+.voxel-btn-album:hover {
+  background: var(--primary-teal-hover);
+}
+
+.voxel-btn-album:active {
+  transform: scale(0.94);
+}
+
+/* ==========================================
+   3. 右下角入口按鈕 (還原截圖 3 & 4)
+   ========================================== */
+.voxel-btn-entrance {
+  position: absolute;
+  bottom: 24px;
+  right: 18px;
+  width: 58px;
+  height: 64px;
+  background: #ffffff;
+  border: 2px solid #e2d7c5;
+  border-radius: 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.18);
+  cursor: pointer;
+  transition: transform 0.15s ease;
+}
+
+.voxel-btn-entrance:active {
+  transform: scale(0.92);
+}
+
+.voxel-btn-entrance .pin-icon {
+  font-size: 20px;
+  line-height: 1;
+}
+
+.voxel-btn-entrance .pin-label {
+  font-size: 12px;
+  font-weight: 700;
+  color: #4a3e35;
+  margin-top: 2px;
+}
+
+/* ==========================================
+   4. 底部提示黑底膠囊 (還原截圖 3 & 4)
+   ========================================== */
+.voxel-bottom-hint {
+  position: absolute;
+  bottom: 28px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(30, 24, 18, 0.78);
+  backdrop-filter: blur(6px);
+  color: #ffffff;
+  font-size: 14px;
+  font-weight: 500;
+  padding: 8px 20px;
+  border-radius: 20px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+  pointer-events: none;
+  white-space: nowrap;
+}
+
+/* ==========================================
+   5. 靠近動態大按鈕 (還原截圖 3 & 5)
+   ========================================== */
+.voxel-interaction-dock {
+  position: absolute;
+  bottom: 80px;
+  left: 50%;
+  transform: translateX(-50%);
+  transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  z-index: 10;
+}
+
+.voxel-interaction-dock.hidden {
+  opacity: 0;
+  transform: translateX(-50%) translateY(30px) scale(0.85);
+  pointer-events: none;
+}
+
+.voxel-action-btn {
+  background: var(--accent-orange);
+  color: #ffffff;
+  border: 3.5px solid #ffffff;
+  border-radius: 44px;
+  padding: 12px 28px;
+  font-size: 19px;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  box-shadow: 0 8px 24px rgba(234, 138, 38, 0.45);
+  animation: pulseButton 2s infinite ease-in-out;
+  transition: transform 0.15s ease, background 0.2s;
+  white-space: nowrap;
+}
+
+.voxel-action-btn:hover {
+  background: var(--accent-orange-hover);
+}
+
+.voxel-action-btn:active {
+  transform: scale(0.94);
+}
+
+@keyframes pulseButton {
+  0%, 100% {
+    transform: scale(1);
+    box-shadow: 0 8px 24px rgba(234, 138, 38, 0.45);
+  }
+  50% {
+    transform: scale(1.04);
+    box-shadow: 0 12px 30px rgba(234, 138, 38, 0.65);
+  }
+}
+
+/* ==========================================
+   6. 彈窗遮罩與通用樣式 (還原截圖 1 & 2)
+   ========================================== */
+.voxel-modal-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.55);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  z-index: 100;
+  transition: opacity 0.25s ease;
+}
+
+.voxel-modal-backdrop.hidden {
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* 地標故事卡 (還原截圖 2) */
+.voxel-story-card {
+  width: 100%;
+  max-width: 380px;
+  background: var(--card-bg);
+  border: 2px solid var(--card-border);
+  border-radius: 28px;
+  padding: 26px 22px;
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.3);
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  animation: cardPop 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+@keyframes cardPop {
+  0% { transform: scale(0.85); opacity: 0; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+.voxel-story-tag {
+  align-self: flex-start;
+  background: var(--dist-badge-bg);
+  color: #ffffff;
+  font-size: 13px;
+  font-weight: 700;
+  padding: 6px 14px;
+  border-radius: 14px;
+  letter-spacing: 0.3px;
+}
+
+.chief-tag {
+  background: #b5651d;
+}
+
+.voxel-story-title {
+  font-size: 26px;
+  font-weight: 800;
+  color: var(--text-dark);
+  line-height: 1.2;
+}
+
+.voxel-story-thumb-wrap {
+  width: 100%;
+  max-height: 160px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #f1ebd9;
+  border-radius: 16px;
+  overflow: hidden;
+  padding: 8px;
+}
+
+.voxel-story-thumb {
+  max-width: 100%;
+  max-height: 140px;
+  object-fit: contain;
+}
+
+.voxel-story-desc {
+  font-size: 15px;
+  line-height: 1.65;
+  color: #52473c;
+  font-weight: 400;
+}
+
+.voxel-story-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 8px;
+}
+
+.voxel-btn-confirm {
+  width: 100%;
+  background: var(--primary-teal);
+  color: #ffffff;
+  border: none;
+  border-radius: 24px;
+  padding: 14px 0;
+  font-size: 17px;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(42, 157, 143, 0.3);
+  transition: transform 0.15s ease, background 0.2s;
+}
+
+.voxel-btn-confirm:hover {
+  background: var(--primary-teal-hover);
+}
+
+.voxel-btn-confirm:active {
+  transform: scale(0.97);
+}
+
+.voxel-btn-confirm.collected {
+  background: #40916c;
+}
+
+.voxel-btn-cancel {
+  width: 100%;
+  background: #ffffff;
+  color: #6a5744;
+  border: 2px solid #9c846e;
+  border-radius: 24px;
+  padding: 13px 0;
+  font-size: 17px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: transform 0.15s ease, background 0.2s;
+}
+
+.voxel-btn-cancel:hover {
+  background: #f6efe6;
+}
+
+.voxel-btn-cancel:active {
+  transform: scale(0.97);
+}
+
+/* ==========================================
+   7. 陽明里文史圖鑑彈窗 (還原截圖 1)
+   ========================================== */
+.voxel-album-card {
+  width: 100%;
+  max-width: 420px;
+  max-height: 85vh;
+  background: var(--card-bg);
+  border: 2px solid var(--card-border);
+  border-radius: 28px;
+  padding: 24px 20px 20px 20px;
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.3);
+  display: flex;
+  flex-direction: column;
+  animation: cardPop 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.voxel-album-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.voxel-album-title {
+  font-size: 22px;
+  font-weight: 800;
+  color: var(--text-dark);
+}
+
+.voxel-close-x {
+  background: none;
+  border: none;
+  font-size: 28px;
+  color: #8c7e6c;
+  cursor: pointer;
+  line-height: 1;
+  padding: 0 4px;
+}
+
+/* 進度條 */
+.voxel-progress-bar-wrap {
+  width: 100%;
+  height: 14px;
+  background: #ede3cf;
+  border-radius: 10px;
+  overflow: hidden;
+  margin-bottom: 8px;
+}
+
+.voxel-progress-bar {
+  height: 100%;
+  background: linear-gradient(90deg, #f4a261, #e76f51);
+  border-radius: 10px;
+  transition: width 0.4s ease;
+}
+
+.voxel-progress-text {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text-dark);
+  margin-bottom: 14px;
+}
+
+/* 列表捲動區 */
+.voxel-album-list-scroll {
+  flex: 1;
+  overflow-y: auto;
+  padding-right: 4px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.voxel-album-list-scroll::-webkit-scrollbar {
+  width: 6px;
+}
+
+.voxel-album-list-scroll::-webkit-scrollbar-thumb {
+  background: #d4c5b1;
+  border-radius: 6px;
+}
+
+/* 分區組件 */
+.voxel-album-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.voxel-album-dist-title {
+  background: var(--dist-badge-bg);
+  color: #ffffff;
+  font-size: 15px;
+  font-weight: 700;
+  padding: 8px 16px;
+  border-radius: 16px;
+}
+
+/* 每一項地標條目 (還原截圖 1) */
+.voxel-album-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #f4ede0;
+  border: 1.5px solid #ded3c1;
+  border-radius: 18px;
+  padding: 12px 16px;
+  cursor: pointer;
+  transition: transform 0.1s ease, background 0.15s;
+}
+
+.voxel-album-item:hover {
+  background: #ebe0cf;
+}
+
+.voxel-album-item:active {
+  transform: scale(0.98);
+}
+
+.voxel-album-item.visited {
+  background: #fbf7ee;
+  border-color: #cbbeaa;
+}
+
+.voxel-album-item .item-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.voxel-album-item .item-code-badge {
+  font-size: 13px;
+  font-weight: 800;
+  padding: 4px 8px;
+  border-radius: 10px;
+}
+
+.code-unvisited {
+  background: #999083;
+  color: #ffffff;
+}
+
+.code-visited {
+  background: #47392d;
+  color: #ffffff;
+}
+
+.voxel-album-item .item-name {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text-dark);
+}
+
+.voxel-album-item .status-pending {
+  font-size: 14px;
+  color: #a49788;
+  font-weight: 500;
+}
+
+.voxel-album-item .status-checked {
+  font-size: 20px;
+  font-weight: 900;
+  color: #2a9d8f;
+}

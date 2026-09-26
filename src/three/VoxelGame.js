@@ -1,0 +1,369 @@
+/**
+ * 陽明里漫步 3D 方塊版 - 遊戲主核心 (VoxelGame.js)
+ * 整合 Three.js 渲染管線、角色跟隨鏡頭、點擊尋路、鍵盤控制與地標距離感測
+ */
+import * as THREE from '../../assets/three.module.js';
+import { VoxelCharacter } from './VoxelCharacter.js';
+import { VoxelTerrain } from './VoxelTerrain.js';
+import { VoxelBuildings } from './VoxelBuildings.js';
+import { VoxelUI } from './VoxelUI.js';
+
+export class VoxelGame {
+  constructor(canvas) {
+    this.canvas = canvas;
+    this.clock = new THREE.Clock();
+
+    // 鍵盤狀態
+    this.keys = { forward: false, backward: false, left: false, right: false };
+
+    // 相機跟隨與視角參數 (斜俯角 45 度，如截圖)
+    this.cameraOffset = new THREE.Vector3(0, 14, 16);
+    this.cameraTarget = new THREE.Vector3();
+    this.cameraYaw = 0; // 水平視角微調角度
+
+    this.initScene();
+    this.initLights();
+    this.initWorld();
+    this.initControls();
+    this.initRaycaster();
+
+    this.ui = new VoxelUI(this);
+
+    // 啟動主迴圈
+    this.animate = this.animate.bind(this);
+    requestAnimationFrame(this.animate);
+  }
+
+  initScene() {
+    this.scene = new THREE.Scene();
+    // 溫暖明亮的陽明山天藍色背景與微霧 (如截圖)
+    this.scene.background = new THREE.Color(0xa7d8ff);
+    this.scene.fog = new THREE.FogExp2(0xa7d8ff, 0.007);
+
+    const width = this.canvas.clientWidth || window.innerWidth;
+    const height = this.canvas.clientHeight || window.innerHeight;
+
+    this.camera = new THREE.PerspectiveCamera(45, width / height, 0.5, 500);
+
+    this.renderer = new THREE.WebGLRenderer({
+      canvas: this.canvas,
+      antialias: true,
+      powerPreference: 'high-performance'
+    });
+    this.renderer.setSize(width, height);
+    this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    this.renderer.shadowMap.enabled = true;
+    this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+  }
+
+  initLights() {
+    // 陽明山自然環境光
+    const ambientLight = new THREE.AmbientLight(0xffffff, 0.75);
+    this.scene.add(ambientLight);
+
+    // 半球光 (天空藍 vs 大地暖草綠)
+    const hemiLight = new THREE.HemisphereLight(0xddeeff, 0x5a8f35, 0.45);
+    this.scene.add(hemiLight);
+
+    // 太陽直射光 (暖色斜射，投射溫和陰影)
+    this.sunLight = new THREE.DirectionalLight(0xfff7e6, 0.85);
+    this.sunLight.position.set(40, 60, 30);
+    this.sunLight.castShadow = true;
+    this.sunLight.shadow.mapSize.width = 2048;
+    this.sunLight.shadow.mapSize.height = 2048;
+    this.sunLight.shadow.camera.near = 10;
+    this.sunLight.shadow.camera.far = 200;
+    this.sunLight.shadow.camera.left = -60;
+    this.sunLight.shadow.camera.right = 60;
+    this.sunLight.shadow.camera.top = 60;
+    this.sunLight.shadow.camera.bottom = -60;
+    this.sunLight.shadow.bias = -0.0005;
+    this.scene.add(this.sunLight);
+  }
+
+  initWorld() {
+    // 1. 地形、步道與自然景觀
+    this.terrain = new VoxelTerrain(this.scene);
+
+    // 2. 30 處地標與特色體素建築 (麥當勞、派出所、7-11、美軍宿舍群等)
+    this.buildings = new VoxelBuildings(this.scene);
+
+    // 3. 玩家主角方塊小人 (青綠色上衣、深藍長褲，還原截圖 4)
+    this.player = new VoxelCharacter({
+      shirtColor: 0x2a9d8f,
+      pantsColor: 0x264653,
+      isNpc: false
+    });
+    // 起點位置：山仔后主要路口起點 (近入口與里長)
+    this.player.group.position.set(0, 0, 14);
+    this.scene.add(this.player.group);
+
+    // 4. 里長 NPC (棕色外套、深色長褲，站在入口處歡迎玩家，還原截圖 5)
+    this.chiefNpc = new VoxelCharacter({
+      shirtColor: 0x6b4226,
+      pantsColor: 0x333333,
+      isNpc: true,
+      name: '里長 黃裕倉'
+    });
+    this.chiefNpc.group.position.set(2.4, 0, 13);
+    this.chiefNpc.group.rotation.y = -Math.PI / 3;
+    this.scene.add(this.chiefNpc.group);
+  }
+
+  initControls() {
+    // 鍵盤移動監聽
+    window.addEventListener('keydown', (e) => {
+      switch (e.key.toLowerCase()) {
+        case 'w':
+        case 'arrowup':
+          this.keys.forward = true;
+          break;
+        case 's':
+        case 'arrowdown':
+          this.keys.backward = true;
+          break;
+        case 'a':
+        case 'arrowleft':
+          this.keys.left = true;
+          break;
+        case 'd':
+        case 'arrowright':
+          this.keys.right = true;
+          break;
+      }
+    });
+
+    window.addEventListener('keyup', (e) => {
+      switch (e.key.toLowerCase()) {
+        case 'w':
+        case 'arrowup':
+          this.keys.forward = false;
+          break;
+        case 's':
+        case 'arrowdown':
+          this.keys.backward = false;
+          break;
+        case 'a':
+        case 'arrowleft':
+          this.keys.left = false;
+          break;
+        case 'd':
+        case 'arrowright':
+          this.keys.right = false;
+          break;
+      }
+    });
+
+    // 拖曳旋轉視野 (滑鼠右鍵或手機單指橫向拖曳)
+    let isDragging = false;
+    let lastX = 0;
+
+    const onPointerDown = (e) => {
+      if (e.button === 2 || e.touches) {
+        isDragging = true;
+        lastX = e.clientX || (e.touches && e.touches[0].clientX);
+      }
+    };
+
+    const onPointerMove = (e) => {
+      if (!isDragging) return;
+      const currentX = e.clientX || (e.touches && e.touches[0].clientX);
+      const deltaX = currentX - lastX;
+      lastX = currentX;
+      this.cameraYaw -= deltaX * 0.006;
+    };
+
+    const onPointerUp = () => {
+      isDragging = false;
+    };
+
+    this.canvas.addEventListener('mousedown', onPointerDown);
+    window.addEventListener('mousemove', onPointerMove);
+    window.addEventListener('mouseup', onPointerUp);
+
+    this.canvas.addEventListener('contextmenu', (e) => e.preventDefault());
+  }
+
+  initRaycaster() {
+    this.raycaster = new THREE.Raycaster();
+    this.pointer = new THREE.Vector2();
+
+    // 點擊地面移動 (Tap to move - 還原提示「用手指點一下地面，小人就會走過去」)
+    let touchStartTime = 0;
+    let touchStartX = 0;
+    let touchStartY = 0;
+
+    const handlePointerTap = (clientX, clientY) => {
+      const rect = this.canvas.getBoundingClientRect();
+      this.pointer.x = ((clientX - rect.left) / rect.width) * 2 - 1;
+      this.pointer.y = -((clientY - rect.top) / rect.height) * 2 + 1;
+
+      this.raycaster.setFromCamera(this.pointer, this.camera);
+      const intersects = this.raycaster.intersectObjects(this.terrain.clickableObjects, true);
+
+      if (intersects.length > 0) {
+        const hitPoint = intersects[0].point;
+        // 小人走向點擊位置
+        this.player.moveTo(hitPoint.x, hitPoint.z);
+        // 地面擴散光圈漣漪
+        this.terrain.spawnRipple(hitPoint.x, hitPoint.z);
+      }
+    };
+
+    // 滑鼠點擊
+    this.canvas.addEventListener('click', (e) => {
+      if (e.button === 0) {
+        handlePointerTap(e.clientX, e.clientY);
+      }
+    });
+
+    // 觸控點擊 (過濾長按拖曳，保留輕點)
+    this.canvas.addEventListener('touchstart', (e) => {
+      if (e.touches.length === 1) {
+        touchStartTime = Date.now();
+        touchStartX = e.touches[0].clientX;
+        touchStartY = e.touches[0].clientY;
+      }
+    }, { passive: true });
+
+    this.canvas.addEventListener('touchend', (e) => {
+      if (e.changedTouches.length === 1) {
+        const duration = Date.now() - touchStartTime;
+        const dx = e.changedTouches[0].clientX - touchStartX;
+        const dy = e.changedTouches[0].clientY - touchStartY;
+        const dist = Math.hypot(dx, dy);
+
+        // 若短時間且位移極小，視為點擊地面尋路
+        if (duration < 300 && dist < 15) {
+          handlePointerTap(e.changedTouches[0].clientX, e.changedTouches[0].clientY);
+        }
+      }
+    });
+  }
+
+  teleportToEntrance() {
+    // 快速傳送回起點入口
+    this.player.stop();
+    this.player.group.position.set(0, 0, 14);
+    this.player.group.rotation.y = 0;
+    this.cameraYaw = 0;
+    this.terrain.spawnRipple(0, 14);
+  }
+
+  teleportToLandmark(landmark) {
+    const item = this.buildings.landmarksWith3D.find(l => l.data.id === landmark.id);
+    if (item) {
+      this.player.stop();
+      this.player.group.position.set(item.worldX, 0, item.worldZ + 4);
+      this.player.group.rotation.y = Math.PI;
+      this.terrain.spawnRipple(item.worldX, item.worldZ + 4);
+    }
+  }
+
+  handleKeyboardMove(delta) {
+    const moveDir = new THREE.Vector3();
+
+    // 根據相機目前旋轉視角計算前後左右方向
+    const forward = new THREE.Vector3(0, 0, -1).applyAxisAngle(new THREE.Vector3(0, 1, 0), this.cameraYaw);
+    const right = new THREE.Vector3(1, 0, 0).applyAxisAngle(new THREE.Vector3(0, 1, 0), this.cameraYaw);
+
+    if (this.keys.forward) moveDir.add(forward);
+    if (this.keys.backward) moveDir.sub(forward);
+    if (this.keys.left) moveDir.sub(right);
+    if (this.keys.right) moveDir.add(right);
+
+    if (moveDir.lengthSq() > 0.001) {
+      moveDir.normalize();
+      this.player.stop(); // 停止點擊尋路，改由鍵盤接手
+      this.player.isMoving = true;
+
+      const moveStep = this.player.speed * delta;
+      this.player.group.position.addScaledVector(moveDir, moveStep);
+
+      // 面向移動方向
+      const targetAngle = Math.atan2(moveDir.x, moveDir.z);
+      let diff = targetAngle - this.player.group.rotation.y;
+      while (diff < -Math.PI) diff += Math.PI * 2;
+      while (diff > Math.PI) diff -= Math.PI * 2;
+      this.player.group.rotation.y += diff * Math.min(1, delta * 15);
+    } else if (!this.player.targetPos) {
+      this.player.isMoving = false;
+    }
+  }
+
+  updateProximity() {
+    const playerPos = this.player.group.position;
+
+    // 1. 檢測與里長 NPC 的距離
+    const chiefDist = playerPos.distanceTo(this.chiefNpc.group.position);
+    const nearChief = chiefDist < 4.2;
+
+    // 2. 檢測與 30 處地標的距離
+    let nearestLandmark = null;
+    let minDistance = 9.0; // 感測閾值
+
+    for (const item of this.buildings.landmarksWith3D) {
+      const dist = playerPos.distanceTo(item.position);
+      if (dist < minDistance) {
+        minDistance = dist;
+        nearestLandmark = item.data;
+      }
+    }
+
+    // 更新 UI 浮動互動按鈕 (調查 / 聊天)
+    this.ui.setProximityStatus(nearestLandmark, nearChief);
+  }
+
+  updateCamera() {
+    // 平滑鏡頭越肩跟隨主角
+    const playerPos = this.player.group.position;
+    this.cameraTarget.lerp(playerPos, 0.08);
+
+    // 根據視角偏角計算鏡頭 offset
+    const rotatedOffset = this.cameraOffset.clone().applyAxisAngle(new THREE.Vector3(0, 1, 0), this.cameraYaw);
+    const targetCameraPos = this.cameraTarget.clone().add(rotatedOffset);
+
+    this.camera.position.lerp(targetCameraPos, 0.08);
+    this.camera.lookAt(this.cameraTarget.x, this.cameraTarget.y + 1.2, this.cameraTarget.z);
+
+    // 讓陽光平行跟隨主角，保證陰影精緻細膩
+    this.sunLight.position.set(playerPos.x + 35, 60, playerPos.z + 25);
+    this.sunLight.target.position.copy(playerPos);
+    this.sunLight.target.updateMatrixWorld();
+  }
+
+  resize(width, height) {
+    if (this.camera && this.renderer) {
+      this.camera.aspect = width / height;
+      this.camera.updateProjectionMatrix();
+      this.renderer.setSize(width, height);
+    }
+  }
+
+  animate() {
+    requestAnimationFrame(this.animate);
+
+    const delta = Math.min(this.clock.getDelta(), 0.1);
+    const time = this.clock.getElapsedTime();
+
+    // 鍵盤移動
+    this.handleKeyboardMove(delta);
+
+    // 角色動畫更新
+    this.player.update(delta);
+    this.chiefNpc.update(delta);
+
+    // 地景與建築更新 (漣漪淡出、引導晶石浮動)
+    this.terrain.update(delta);
+    this.buildings.update(delta, time);
+
+    // 距離感測
+    this.updateProximity();
+
+    // 鏡頭跟隨
+    this.updateCamera();
+
+    // 渲染場景
+    this.renderer.render(this.scene, this.camera);
+  }
+}
