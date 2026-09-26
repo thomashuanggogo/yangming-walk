@@ -246,7 +246,7 @@ export class VoxelTerrain {
     const trunkMesh = new THREE.Mesh(trunkGeo, this.materials.woodTrunk);
     trunkMesh.position.y = trunkH / 2;
     trunkMesh.castShadow = true;
-    trunkGroup.add(trunkMesh);
+    treeGroup.add(trunkMesh);
 
     // 樹冠 (Leaves) - 階層方塊
     const leafMat = type === 'sakura' ? this.materials.leavesSakura : this.materials.leavesGreen;

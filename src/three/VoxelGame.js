@@ -16,8 +16,8 @@ export class VoxelGame {
     // 鍵盤狀態
     this.keys = { forward: false, backward: false, left: false, right: false };
 
-    // 相機跟隨與視角參數 (斜俯角 45 度，如截圖)
-    this.cameraOffset = new THREE.Vector3(0, 14, 16);
+    // 相機跟隨與視角參數 (斜俯角 45 度，如截圖 4)
+    this.cameraOffset = new THREE.Vector3(0, 11, 13);
     this.cameraTarget = new THREE.Vector3();
     this.cameraYaw = 0; // 水平視角微調角度
 
@@ -26,6 +26,11 @@ export class VoxelGame {
     this.initWorld();
     this.initControls();
     this.initRaycaster();
+
+    // 初始鏡頭立刻精準對準主角小人
+    this.cameraTarget.copy(this.player.group.position);
+    this.camera.position.copy(this.cameraTarget).add(this.cameraOffset);
+    this.camera.lookAt(this.cameraTarget.x, this.cameraTarget.y + 1.2, this.cameraTarget.z);
 
     this.ui = new VoxelUI(this);
 
@@ -36,13 +41,14 @@ export class VoxelGame {
 
   initScene() {
     this.scene = new THREE.Scene();
-    // 溫暖明亮的陽明山天藍色背景與微霧 (如截圖)
+    // 溫暖明亮的陽明山天藍色背景與遠景柔霧 (近處無霧干擾)
     this.scene.background = new THREE.Color(0xa7d8ff);
-    this.scene.fog = new THREE.FogExp2(0xa7d8ff, 0.007);
+    this.scene.fog = new THREE.Fog(0xa7d8ff, 35, 120);
 
     const width = this.canvas.clientWidth || window.innerWidth;
     const height = this.canvas.clientHeight || window.innerHeight;
 
+    // 視角 45 度俯角，如截圖
     this.camera = new THREE.PerspectiveCamera(45, width / height, 0.5, 500);
 
     this.renderer = new THREE.WebGLRenderer({
@@ -57,28 +63,25 @@ export class VoxelGame {
   }
 
   initLights() {
-    // 陽明山自然環境光
-    const ambientLight = new THREE.AmbientLight(0xffffff, 0.75);
+    // 柔和自然環境光 (避免過曝死白)
+    const ambientLight = new THREE.AmbientLight(0xffffff, 0.55);
     this.scene.add(ambientLight);
 
-    // 半球光 (天空藍 vs 大地暖草綠)
-    const hemiLight = new THREE.HemisphereLight(0xddeeff, 0x5a8f35, 0.45);
-    this.scene.add(hemiLight);
-
-    // 太陽直射光 (暖色斜射，投射溫和陰影)
-    this.sunLight = new THREE.DirectionalLight(0xfff7e6, 0.85);
-    this.sunLight.position.set(40, 60, 30);
+    // 太陽斜射光
+    this.sunLight = new THREE.DirectionalLight(0xfff8eb, 0.65);
+    this.sunLight.position.set(30, 45, 25);
     this.sunLight.castShadow = true;
-    this.sunLight.shadow.mapSize.width = 2048;
-    this.sunLight.shadow.mapSize.height = 2048;
-    this.sunLight.shadow.camera.near = 10;
-    this.sunLight.shadow.camera.far = 200;
-    this.sunLight.shadow.camera.left = -60;
-    this.sunLight.shadow.camera.right = 60;
-    this.sunLight.shadow.camera.top = 60;
-    this.sunLight.shadow.camera.bottom = -60;
-    this.sunLight.shadow.bias = -0.0005;
+    this.sunLight.shadow.mapSize.width = 1024;
+    this.sunLight.shadow.mapSize.height = 1024;
+    this.sunLight.shadow.camera.near = 5;
+    this.sunLight.shadow.camera.far = 120;
+    this.sunLight.shadow.camera.left = -40;
+    this.sunLight.shadow.camera.right = 40;
+    this.sunLight.shadow.camera.top = 40;
+    this.sunLight.shadow.camera.bottom = -40;
+    this.sunLight.shadow.bias = -0.001;
     this.scene.add(this.sunLight);
+    this.scene.add(this.sunLight.target);
   }
 
   initWorld() {
@@ -94,18 +97,18 @@ export class VoxelGame {
       pantsColor: 0x264653,
       isNpc: false
     });
-    // 起點位置：山仔后主要路口起點 (近入口與里長)
-    this.player.group.position.set(0, 0, 14);
+    // 起點位置：開闊草地前庭，視野通透 (如截圖 4 與 5)
+    this.player.group.position.set(-8, 0, 15);
     this.scene.add(this.player.group);
 
-    // 4. 里長 NPC (棕色外套、深色長褲，站在入口處歡迎玩家，還原截圖 5)
+    // 4. 里長 NPC (棕色外套、深色長褲，站在主角身邊歡迎玩家，還原截圖 5)
     this.chiefNpc = new VoxelCharacter({
       shirtColor: 0x6b4226,
       pantsColor: 0x333333,
       isNpc: true,
       name: '里長 黃裕倉'
     });
-    this.chiefNpc.group.position.set(2.4, 0, 13);
+    this.chiefNpc.group.position.set(-5.5, 0, 14.2);
     this.chiefNpc.group.rotation.y = -Math.PI / 3;
     this.scene.add(this.chiefNpc.group);
   }
@@ -244,10 +247,10 @@ export class VoxelGame {
   teleportToEntrance() {
     // 快速傳送回起點入口
     this.player.stop();
-    this.player.group.position.set(0, 0, 14);
+    this.player.group.position.set(-8, 0, 15);
     this.player.group.rotation.y = 0;
     this.cameraYaw = 0;
-    this.terrain.spawnRipple(0, 14);
+    this.terrain.spawnRipple(-8, 15);
   }
 
   teleportToLandmark(landmark) {

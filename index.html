@@ -13,7 +13,15 @@
   <!-- 核心 3D WebGL 渲染畫布 -->
   <canvas id="game-canvas-3d"></canvas>
 
-  <!-- 3D 遊戲核心邏輯載入 (原生 ES Module) -->
-  <script type="module" src="src/main_3d.js"></script>
+  <!-- 1. 載入 Three.js 核心庫 (本地優先，備用 CDN) -->
+  <script src="assets/three.min.js"></script>
+  <script>
+    if (typeof THREE === 'undefined') {
+      document.write('<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"><\\/script>');
+    }
+  </script>
+
+  <!-- 2. 載入 3D 遊戲完整程式 (免伺服器，雙擊直接玩) -->
+  <script src="bundle_3d.js?v=20260926_3d_v1"></script>
 </body>
 </html>
