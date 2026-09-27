@@ -5,7 +5,9 @@
 import * as THREE from '../../assets/three.module.js';
 
 export class VoxelTerrain {
-  constructor(scene) {
+  constructor(scene, roadNetwork, maxTextureSize) {
+    this.roadNetwork = roadNetwork;
+    this.maxTextureSize = maxTextureSize;
     this.scene = scene;
     this.clickableObjects = []; // 供 Raycaster 拾取的地面物件
     this.rippleRings = []; // 點擊漣漪特效
@@ -15,6 +17,7 @@ export class VoxelTerrain {
 
     this.buildTerrain();
     this.buildRoads();
+    this.buildNorthernParks();
     this.buildNature();
     this.initRippleSystem();
   }
@@ -44,156 +47,70 @@ export class VoxelTerrain {
 
   buildTerrain() {
     // 總基地大地板 (以 0,0 為山仔后核心，範圍 280 x 280，完全平坦，y=0 為地面基準)
-    const baseGeo = new THREE.BoxGeometry(280, 1, 280);
+    const baseGeo = new THREE.BoxGeometry(this.roadNetwork.size, 1, this.roadNetwork.size);
     const baseMesh = new THREE.Mesh(baseGeo, this.materials.grassTop);
     baseMesh.position.y = -0.5;
     baseMesh.receiveShadow = true;
     this.group.add(baseMesh);
     this.clickableObjects.push(baseMesh);
 
-    // 平坦的方塊草地網格線 (如截圖般一格一格的 Minecraft 像素方塊感，完全平整無起伏)
-    const gridHelper = new THREE.GridHelper(280, 140, 0x568c31, 0x619b38);
-    gridHelper.position.y = 0.01;
-    this.group.add(gridHelper);
+
   }
 
   buildRoads() {
-    // 仰德大道 / 格致路 (南北走向主幹道)
-    const mainRoadGeo = new THREE.BoxGeometry(10, 0.08, 250);
-    const mainRoad = new THREE.Mesh(mainRoadGeo, this.materials.asphalt);
-    mainRoad.position.set(0, 0.04, 0);
-    mainRoad.receiveShadow = true;
-    this.group.add(mainRoad);
-    this.clickableObjects.push(mainRoad);
-
-    // 主幹道黃色分向線 (方塊虛線)
-    for (let z = -120; z <= 120; z += 10) {
-      const lineGeo = new THREE.BoxGeometry(0.5, 0.1, 4);
-      const lineMat = new THREE.MeshBasicMaterial({ color: 0xffd166 });
-      const line = new THREE.Mesh(lineGeo, lineMat);
-      line.position.set(0, 0.09, z);
-      this.group.add(line);
-    }
-
-    // 東西向光華路 / 愛富一街 (美軍宿舍主要橫向幹道)
-    const crossRoadGeo = new THREE.BoxGeometry(220, 0.08, 8);
-    const crossRoad = new THREE.Mesh(crossRoadGeo, this.materials.asphalt);
-    crossRoad.position.set(0, 0.04, -30);
-    crossRoad.receiveShadow = true;
-    this.group.add(crossRoad);
-    this.clickableObjects.push(crossRoad);
-
-    // 麥當勞門前與山仔后生活核心行人石板廣場 (灰色方塊步道)
-    const plazaGeo = new THREE.BoxGeometry(32, 0.09, 36);
-    const plaza = new THREE.Mesh(plazaGeo, this.materials.stoneRoad);
-    plaza.position.set(-6, 0.05, 5);
-    plaza.receiveShadow = true;
-    this.group.add(plaza);
-    this.clickableObjects.push(plaza);
-
-    // 文化大學方向步道 (西側)
-    const pccuPathGeo = new THREE.BoxGeometry(80, 0.08, 6);
-    const pccuPath = new THREE.Mesh(pccuPathGeo, this.materials.stoneRoad);
-    pccuPath.position.set(-50, 0.04, 25);
-    pccuPath.receiveShadow = true;
-    this.group.add(pccuPath);
-    this.clickableObjects.push(pccuPath);
-
-    // 美軍宿舍區林蔭石板小徑 (蜿蜒木道與碎石路)
-    const subPaths = [
-      { x: 45, z: -55, w: 6, d: 60, mat: this.materials.stoneRoad },
-      { x: 70, z: -30, w: 50, d: 5, mat: this.materials.dirtPath },
-      { x: -50, z: -60, w: 6, d: 50, mat: this.materials.dirtPath },
-      { x: 15, z: 50, w: 5, d: 60, mat: this.materials.stoneRoad }
-    ];
-    subPaths.forEach(p => {
-      const geo = new THREE.BoxGeometry(p.w, 0.08, p.d);
-      const mesh = new THREE.Mesh(geo, p.mat);
-      mesh.position.set(p.x, 0.04, p.z);
-      mesh.receiveShadow = true;
-      this.group.add(mesh);
-      this.clickableObjects.push(mesh);
-    });
+    this.roadsMesh = this.roadNetwork.createSurface(this.maxTextureSize);
+    this.group.add(this.roadsMesh);
+    this.clickableObjects.push(this.roadsMesh);
   }
 
   buildNature() {
-    // 1. 方塊樹木配置 (櫻花樹、黑松、闊葉樹)
-    const treePositions = [
-      // 麥當勞與派出所周邊
-      { x: -16, z: 18, type: 'oak' },
-      { x: -14, z: -8, type: 'sakura' },
-      { x: 12, z: 12, type: 'oak' },
-      { x: 14, z: -10, type: 'sakura' },
-      // 山仔后公園周邊林蔭
-      { x: -28, z: -32, type: 'oak' },
-      { x: -35, z: -25, type: 'oak' },
-      { x: -22, z: -40, type: 'sakura' },
-      // 北區美軍宿舍群林道
-      { x: -25, z: -70, type: 'oak' },
-      { x: -15, z: -85, type: 'sakura' },
-      { x: 20, z: -75, type: 'sakura' },
-      { x: 35, z: -85, type: 'oak' },
-      { x: -55, z: -80, type: 'oak' },
-      // 東區美軍宿舍群 (亞尼克 / 想陽明山)
-      { x: 45, z: -15, type: 'sakura' },
-      { x: 60, z: -45, type: 'oak' },
-      { x: 75, z: -60, type: 'sakura' },
-      { x: 85, z: -10, type: 'oak' },
-      { x: 55, z: 15, type: 'oak' },
-      // 南區花卉試驗中心周邊 (密集櫻花樹與花樹)
-      { x: -10, z: 65, type: 'sakura' },
-      { x: -25, z: 75, type: 'sakura' },
-      { x: 25, z: 70, type: 'sakura' },
-      { x: 40, z: 85, type: 'oak' },
-      { x: 10, z: 95, type: 'sakura' },
-      // 西區文大邊坡
-      { x: -65, z: 10, type: 'oak' },
-      { x: -80, z: 35, type: 'oak' },
-      { x: -45, z: 40, type: 'sakura' }
-    ];
+    // Decorative trees are not map data. Keep them off roads and landmark plots.
+    let seed = 9256;
+    const random = () => { seed = (seed * 1664525 + 1013904223) >>> 0; return seed / 4294967296; };
+    const places = this.roadNetwork.data.placements;
+    let count = 0;
+    for (let i = 0; i < 1600 && count < 140; i++) {
+      const x = (random() - .5) * this.roadNetwork.size;
+      const z = (random() - .5) * this.roadNetwork.size;
+      if (!this.roadNetwork.contains(x, z)) continue;
+      if (this.roadNetwork.nearest(x, z).clearance < 5) continue;
+      if (places.some(p => Math.hypot(x-p.x,z-p.z) < p.radius+6)) continue;
+      this.createVoxelTree(x,z,count % 7 === 0 ? 'sakura' : 'oak');
+      count++;
+    }
+  }
 
-    treePositions.forEach(t => {
-      this.createVoxelTree(t.x, t.z, t.type);
-    });
-
-    // 2. 散落於草地上的彩色小花方塊柱 (如截圖 4 所示)
-    const flowerMats = [
-      this.materials.flowerRed,
-      this.materials.flowerPink,
-      this.materials.flowerWhite,
-      this.materials.flowerOrange,
-      this.materials.flowerYellow
-    ];
-
-    const flowerPositions = [
-      { x: -12, z: 8 }, { x: -8, z: 22 }, { x: 8, z: 6 }, { x: 10, z: 25 },
-      { x: -20, z: -18 }, { x: -25, z: -14 }, { x: 18, z: -20 }, { x: 25, z: -35 },
-      { x: -30, z: 30 }, { x: -35, z: 15 }, { x: 35, z: -15 }, { x: 45, z: 10 },
-      { x: -6, z: 45 }, { x: 12, z: 55 }, { x: -18, z: 60 }, { x: 22, z: 75 },
-      { x: -50, z: -45 }, { x: 60, z: -70 }, { x: 70, z: 10 }, { x: -70, z: 20 }
-    ];
-
-    flowerPositions.forEach((pos, idx) => {
-      const fGeo = new THREE.BoxGeometry(0.3, 0.7, 0.3);
-      const fMat = flowerMats[idx % flowerMats.length];
-      const flower = new THREE.Mesh(fGeo, fMat);
-      flower.position.set(pos.x, 0.35, pos.z);
-      flower.castShadow = true;
-      this.group.add(flower);
-    });
-
-    // 3. 復古路燈 (沿幹道豎立)
-    const lampPositions = [
-      { x: -6, z: -15 }, { x: 6, z: -15 },
-      { x: -6, z: 15 }, { x: 6, z: 15 },
-      { x: -6, z: 40 }, { x: 6, z: 40 },
-      { x: -6, z: -45 }, { x: 6, z: -45 },
-      { x: 35, z: -34 }, { x: 65, z: -34 },
-      { x: -35, z: -34 }, { x: -65, z: -34 }
-    ];
-    lampPositions.forEach(p => {
-      this.createStreetLamp(p.x, p.z);
-    });
+  buildNorthernParks() {
+    const data = this.roadNetwork.data;
+    const polygonMesh = (polygon,color,height) => {
+      const shape=new THREE.Shape(polygon.outer.map(([x,z])=>new THREE.Vector2(x,-z)));
+      shape.holes=(polygon.holes||[]).map(r=>new THREE.Path(r.map(([x,z])=>new THREE.Vector2(x,-z))));
+      const mesh=new THREE.Mesh(new THREE.ShapeGeometry(shape),new THREE.MeshLambertMaterial({color}));
+      mesh.rotation.x=-Math.PI/2;mesh.position.y=height;mesh.receiveShadow=true;this.group.add(mesh);
+    };
+    for(const park of data.parks||[]) polygonMesh(park,0x8cac6b,.014);
+    for(const water of data.waters||[]) polygonMesh(water,0x6aadb7,.026);
+    const inside=(x,z,ring)=>{
+      let hit=false;
+      for(let i=0,j=ring.length-1;i<ring.length;j=i++) {
+        const a=ring[i],b=ring[j];if((a[1]>z)!==(b[1]>z)&&x<(b[0]-a[0])*(z-a[1])/(b[1]-a[1])+a[0])hit=!hit;
+      }
+      return hit;
+    };
+    // Decorative planting follows mapped park outlines; avoid paths and miniature plots.
+    let seed=6701;const rand=()=>{seed=(seed*1664525+1013904223)>>>0;return seed/4294967296;};
+    for(const park of data.parks||[]) {
+      const xs=park.outer.map(p=>p[0]),zs=park.outer.map(p=>p[1]);
+      const minX=Math.min(...xs),maxX=Math.max(...xs),minZ=Math.min(...zs),maxZ=Math.max(...zs);
+      let planted=0;
+      for(let i=0;i<600&&planted<45;i++) {
+        const x=minX+rand()*(maxX-minX),z=minZ+rand()*(maxZ-minZ);
+        if(!inside(x,z,park.outer)||this.roadNetwork.nearest(x,z).clearance<3)continue;
+        if(data.placements.some(p=>Math.hypot(x-p.x,z-p.z)<p.radius+4))continue;
+        if((data.waters||[]).some(w=>inside(x,z,w.outer)))continue;
+        this.createVoxelTree(x,z,planted++%3===0?'sakura':'oak');
+      }
+    }
   }
 
   createVoxelTree(x, z, type = 'oak') {
@@ -281,7 +198,7 @@ export class VoxelTerrain {
     const item = this.rippleRings.find(r => !r.active) || this.rippleRings[0];
     item.active = true;
     item.time = 0;
-    item.mesh.position.set(x, 0.08, z);
+    item.mesh.position.set(x, 0.14, z);
     item.mesh.scale.set(1, 1, 1);
     item.mesh.material.opacity = 0.85;
     item.mesh.visible = true;

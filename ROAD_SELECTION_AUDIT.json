@@ -1,0 +1,501 @@
+{
+  "policy": "Named main streets plus shortest existing mapped approaches to landmarks and necessary junction links; other lanes and trails hidden.",
+  "sourceRoadParts": 1615,
+  "displayRoadParts": 151,
+  "connectedComponents": 1,
+  "landmarkConnections": [
+    {
+      "code": "01",
+      "name": "山仔后派出所",
+      "approachRoad": "格致路",
+      "entranceDistanceUnits": 2.42,
+      "connectedToMainRoad": true
+    },
+    {
+      "code": "02",
+      "name": "陽明山麥當勞",
+      "approachRoad": "格致路50巷",
+      "entranceDistanceUnits": 1.3,
+      "connectedToMainRoad": true
+    },
+    {
+      "code": "03",
+      "name": "7-ELEVEN 陽明山門市",
+      "approachRoad": "格致路",
+      "entranceDistanceUnits": 2.42,
+      "connectedToMainRoad": true
+    },
+    {
+      "code": "04",
+      "name": "山仔后公園",
+      "approachRoad": "凱旋路",
+      "entranceDistanceUnits": 1.3,
+      "connectedToMainRoad": true
+    },
+    {
+      "code": "05",
+      "name": "陽明里辦公處 (區民活動中心)",
+      "approachRoad": "菁山路",
+      "entranceDistanceUnits": 1.77,
+      "connectedToMainRoad": true
+    },
+    {
+      "code": "06",
+      "name": "台灣中油陽明山加油站",
+      "approachRoad": "地標連接步道",
+      "entranceDistanceUnits": 0.83,
+      "connectedToMainRoad": true
+    },
+    {
+      "code": "07",
+      "name": "豆留森林 (CAMA)",
+      "approachRoad": "地標連接步道",
+      "entranceDistanceUnits": 1.11,
+      "connectedToMainRoad": true
+    },
+    {
+      "code": "08",
+      "name": "白房子 Yang Ming Cafe",
+      "approachRoad": "格致路",
+      "entranceDistanceUnits": 1.3,
+      "connectedToMainRoad": true
+    },
+    {
+      "code": "09",
+      "name": "彩虹谷故事館 (F206)",
+      "approachRoad": "愛富三街",
+      "entranceDistanceUnits": 1.18,
+      "connectedToMainRoad": true
+    },
+    {
+      "code": "10",
+      "name": "美軍宿舍群 (C 區建業路段)",
+      "approachRoad": "地標連接步道",
+      "entranceDistanceUnits": 1.11,
+      "connectedToMainRoad": true
+    },
+    {
+      "code": "11",
+      "name": "雀客藏居陽明山溫泉飯店",
+      "approachRoad": "地標連接步道",
+      "entranceDistanceUnits": 1.11,
+      "connectedToMainRoad": true
+    },
+    {
+      "code": "12",
+      "name": "陽明山錫安堂",
+      "approachRoad": "陽明路一段24巷3弄",
+      "entranceDistanceUnits": 1.3,
+      "connectedToMainRoad": true
+    },
+    {
+      "code": "13",
+      "name": "草山御賓館 (市定古蹟)",
+      "approachRoad": "新園街",
+      "entranceDistanceUnits": 1.46,
+      "connectedToMainRoad": true
+    },
+    {
+      "code": "14",
+      "name": "中國文化大學",
+      "approachRoad": "華岡路",
+      "entranceDistanceUnits": 1.11,
+      "connectedToMainRoad": true
+    },
+    {
+      "code": "15",
+      "name": "亞尼克夢想村",
+      "approachRoad": "長春街",
+      "entranceDistanceUnits": 1.11,
+      "connectedToMainRoad": true
+    },
+    {
+      "code": "16",
+      "name": "The Cafe By 想 陽明山",
+      "approachRoad": "國泰街",
+      "entranceDistanceUnits": 7.75,
+      "connectedToMainRoad": true
+    },
+    {
+      "code": "17",
+      "name": "陽明山星巴克 (草山門市)",
+      "approachRoad": "光華路",
+      "entranceDistanceUnits": 1.3,
+      "connectedToMainRoad": true
+    },
+    {
+      "code": "18",
+      "name": "美軍俱樂部 (BRICK YARD 33 1/3)",
+      "approachRoad": "凱旋路",
+      "entranceDistanceUnits": 3.68,
+      "connectedToMainRoad": true
+    },
+    {
+      "code": "19",
+      "name": "陽明山美國渡假村",
+      "approachRoad": "凱旋路61巷2弄",
+      "entranceDistanceUnits": 1.1,
+      "connectedToMainRoad": true
+    },
+    {
+      "code": "20",
+      "name": "臺北市立陽明教養院",
+      "approachRoad": "凱旋路61巷2弄",
+      "entranceDistanceUnits": 1.11,
+      "connectedToMainRoad": true
+    },
+    {
+      "code": "21",
+      "name": "屋頂上餐廳 (The Top)",
+      "approachRoad": "孔子大道",
+      "entranceDistanceUnits": 1.11,
+      "connectedToMainRoad": true
+    },
+    {
+      "code": "22",
+      "name": "華岡藝校",
+      "approachRoad": "地標連接步道",
+      "entranceDistanceUnits": 0.83,
+      "connectedToMainRoad": true
+    },
+    {
+      "code": "23",
+      "name": "台北歐洲學校 (陽明校區)",
+      "approachRoad": "建業路68巷",
+      "entranceDistanceUnits": 1.1,
+      "connectedToMainRoad": true
+    },
+    {
+      "code": "24",
+      "name": "草山猛禽中心",
+      "approachRoad": "建業路11巷",
+      "entranceDistanceUnits": 1.1,
+      "connectedToMainRoad": true
+    },
+    {
+      "code": "25",
+      "name": "YMS onefifteen 初衣食午",
+      "approachRoad": "建業路",
+      "entranceDistanceUnits": 1.3,
+      "connectedToMainRoad": true
+    },
+    {
+      "code": "26",
+      "name": "花卉試驗中心",
+      "approachRoad": "仰德大道四段",
+      "entranceDistanceUnits": 2.42,
+      "connectedToMainRoad": true
+    },
+    {
+      "code": "27",
+      "name": "陽明福德宮",
+      "approachRoad": "地標連接步道",
+      "entranceDistanceUnits": 1.3,
+      "connectedToMainRoad": true
+    },
+    {
+      "code": "28",
+      "name": "臺北市立格致國民中學",
+      "approachRoad": "仰德大道四段",
+      "entranceDistanceUnits": 2.42,
+      "connectedToMainRoad": true
+    },
+    {
+      "code": "29",
+      "name": "納美花園 (Navi Garden)",
+      "approachRoad": "菁山路72巷20弄",
+      "entranceDistanceUnits": 1.1,
+      "connectedToMainRoad": true
+    },
+    {
+      "code": "30",
+      "name": "下竹林福德宮",
+      "approachRoad": "地標連接步道",
+      "entranceDistanceUnits": 1.29,
+      "connectedToMainRoad": true
+    },
+    {
+      "code": "31",
+      "name": "臺灣銀行行員訓練所",
+      "approachRoad": "地標連接步道",
+      "entranceDistanceUnits": 0.82,
+      "connectedToMainRoad": true
+    },
+    {
+      "code": "32",
+      "name": "吉佳咖啡 (山上店)",
+      "approachRoad": "格致路56巷",
+      "entranceDistanceUnits": 1.3,
+      "connectedToMainRoad": true
+    },
+    {
+      "code": "33",
+      "name": "真愛桃花源 庭園餐廳",
+      "approachRoad": "華岡路",
+      "entranceDistanceUnits": 1.14,
+      "connectedToMainRoad": true
+    },
+    {
+      "code": "34",
+      "name": "臺北市教師研習中心",
+      "approachRoad": "陽明路一段",
+      "entranceDistanceUnits": 2.42,
+      "connectedToMainRoad": true
+    },
+    {
+      "code": "35",
+      "name": "林洋港故居 (前美軍總司令官邸)",
+      "approachRoad": "愛富二街",
+      "entranceDistanceUnits": 1.14,
+      "connectedToMainRoad": true
+    },
+    {
+      "code": "36",
+      "name": "文化大學學生美食街 (牛肉拌麵)",
+      "approachRoad": "光華路26巷",
+      "entranceDistanceUnits": 1.11,
+      "connectedToMainRoad": true
+    },
+    {
+      "code": "37",
+      "name": "文化大學郵局 (華岡大典館)",
+      "approachRoad": "孔子大道",
+      "entranceDistanceUnits": 1.11,
+      "connectedToMainRoad": true
+    },
+    {
+      "code": "38",
+      "name": "比夢烘焙坊 (The Cafe' By 想 陽明山)",
+      "approachRoad": "愛富一街",
+      "entranceDistanceUnits": 1.14,
+      "connectedToMainRoad": true
+    },
+    {
+      "code": "39",
+      "name": "康迎鼎 陽明山店",
+      "approachRoad": "愛富二街厚生巷",
+      "entranceDistanceUnits": 2.44,
+      "connectedToMainRoad": true
+    },
+    {
+      "code": "40",
+      "name": "大衛小小羊 (David & Alpaca)",
+      "approachRoad": "國泰街",
+      "entranceDistanceUnits": 4.48,
+      "connectedToMainRoad": true
+    },
+    {
+      "code": "41",
+      "name": "朱里昂法式廚房 (C.L Program)",
+      "approachRoad": "國泰街",
+      "entranceDistanceUnits": 6.06,
+      "connectedToMainRoad": true
+    },
+    {
+      "code": "42",
+      "name": "文化大學後山「情人坡」",
+      "approachRoad": "荀子大道(仇人坡)",
+      "entranceDistanceUnits": 1.11,
+      "connectedToMainRoad": true
+    },
+    {
+      "code": "43",
+      "name": "仇人坡 (荀子大道) 與百花池",
+      "approachRoad": "釋迦大道",
+      "entranceDistanceUnits": 1.1,
+      "connectedToMainRoad": true
+    },
+    {
+      "code": "44",
+      "name": "草山水管路步道 (愛富段出口)",
+      "approachRoad": "天母古道親山步道",
+      "entranceDistanceUnits": 0.83,
+      "connectedToMainRoad": true
+    },
+    {
+      "code": "46",
+      "name": "文化大學大孝館 (圓柱體育館)",
+      "approachRoad": "地標連接步道",
+      "entranceDistanceUnits": 1.11,
+      "connectedToMainRoad": true
+    },
+    {
+      "code": "47",
+      "name": "草山夜未眠景觀餐廳",
+      "approachRoad": "地標連接步道",
+      "entranceDistanceUnits": 1.1,
+      "connectedToMainRoad": true
+    },
+    {
+      "code": "48",
+      "name": "陽明山順天府 (池府王爺)",
+      "approachRoad": "地標連接步道",
+      "entranceDistanceUnits": 0.82,
+      "connectedToMainRoad": true
+    },
+    {
+      "code": "49",
+      "name": "文化大學 大義館 (八角中庭宮殿)",
+      "approachRoad": "華岡路",
+      "entranceDistanceUnits": 1.1,
+      "connectedToMainRoad": true
+    },
+    {
+      "code": "50",
+      "name": "文化大學 大恩館 (行政大樓與百花池涼亭)",
+      "approachRoad": "華岡路",
+      "entranceDistanceUnits": 1.11,
+      "connectedToMainRoad": true
+    },
+    {
+      "code": "51",
+      "name": "文化大學 大賢館 (法學院與社科院)",
+      "approachRoad": "地標連接步道",
+      "entranceDistanceUnits": 1.1,
+      "connectedToMainRoad": true
+    },
+    {
+      "code": "52",
+      "name": "文化大學 大仁館 (十字風車綠瓦藝術學院)",
+      "approachRoad": "華岡路",
+      "entranceDistanceUnits": 1.11,
+      "connectedToMainRoad": true
+    },
+    {
+      "code": "53",
+      "name": "歐洲學校足球場 (戶外人工草皮)",
+      "approachRoad": "凱旋路",
+      "entranceDistanceUnits": 8.84,
+      "connectedToMainRoad": true
+    },
+    {
+      "code": "54",
+      "name": "山仔后文史工作室 (美軍宿舍文化景觀)",
+      "approachRoad": "愛富二街",
+      "entranceDistanceUnits": 1.77,
+      "connectedToMainRoad": true
+    },
+    {
+      "code": "55",
+      "name": "文化大學 曉峯紀念館 (一樓全聯福利中心)",
+      "approachRoad": "華岡路",
+      "entranceDistanceUnits": 7.84,
+      "connectedToMainRoad": true
+    },
+    {
+      "code": "56",
+      "name": "阿緹卡義大利 pizza專賣店 (Antica)",
+      "approachRoad": "凱旋路",
+      "entranceDistanceUnits": 6.05,
+      "connectedToMainRoad": true
+    },
+    {
+      "code": "57",
+      "name": "光在草山 (Light On Old Town)",
+      "approachRoad": "國泰街",
+      "entranceDistanceUnits": 8.21,
+      "connectedToMainRoad": true
+    },
+    {
+      "code": "58",
+      "name": "陽明山耶穌聖體堂 (天主教主徒會)",
+      "approachRoad": "華岡路",
+      "entranceDistanceUnits": 4.31,
+      "connectedToMainRoad": true
+    },
+    {
+      "code": "59",
+      "name": "草山溫泉湯王池 (陽明山溫泉第一泉)",
+      "approachRoad": "地標連接步道",
+      "entranceDistanceUnits": 3.66,
+      "connectedToMainRoad": true
+    },
+    {
+      "code": "61",
+      "name": "前山公園・陽明湖",
+      "approachRoad": "地標連接步道",
+      "entranceDistanceUnits": 12.15,
+      "connectedToMainRoad": true
+    },
+    {
+      "code": "62",
+      "name": "前山公園・磐流園",
+      "approachRoad": "地標連接步道",
+      "entranceDistanceUnits": 0.49,
+      "connectedToMainRoad": true
+    },
+    {
+      "code": "63",
+      "name": "陽明公園・花鐘",
+      "approachRoad": "中興路",
+      "entranceDistanceUnits": 1.0,
+      "connectedToMainRoad": true
+    },
+    {
+      "code": "64",
+      "name": "辛亥光復樓",
+      "approachRoad": "地標連接步道",
+      "entranceDistanceUnits": 0.44,
+      "connectedToMainRoad": true
+    },
+    {
+      "code": "65",
+      "name": "陽明書屋・中興賓館",
+      "approachRoad": "地標連接步道",
+      "entranceDistanceUnits": 0.84,
+      "connectedToMainRoad": true
+    },
+    {
+      "code": "66",
+      "name": "陽明山國家公園遊客中心",
+      "approachRoad": "地標連接步道",
+      "entranceDistanceUnits": 0.49,
+      "connectedToMainRoad": true
+    },
+    {
+      "code": "67",
+      "name": "陽明公園前門",
+      "approachRoad": "湖山路一段",
+      "entranceDistanceUnits": 1.48,
+      "connectedToMainRoad": true
+    },
+    {
+      "code": "45",
+      "name": "草山行館",
+      "approachRoad": "地標連接步道",
+      "entranceDistanceUnits": 0.44,
+      "connectedToMainRoad": true
+    },
+    {
+      "code": "60",
+      "name": "陽明山中山樓 (中華宮殿國寶)",
+      "approachRoad": "地標連接步道",
+      "entranceDistanceUnits": 1.11,
+      "connectedToMainRoad": true
+    }
+  ],
+  "mainStreetNames": [
+    "中庸一路",
+    "中興路",
+    "仰德大道三段",
+    "仰德大道四段",
+    "光華路",
+    "凱旋路",
+    "國泰街",
+    "建業路",
+    "愛富一街",
+    "愛富三街",
+    "愛富二街",
+    "新園街",
+    "格致路",
+    "泉源路",
+    "湖山路一段",
+    "湖山路二段",
+    "紗帽路",
+    "菁山路",
+    "華岡路",
+    "長春街",
+    "陽明路一段",
+    "陽明路二段"
+  ]
+}

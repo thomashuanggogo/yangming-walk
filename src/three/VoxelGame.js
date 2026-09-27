@@ -6,7 +6,9 @@ import * as THREE from '../../assets/three.module.js';
 import { VoxelCharacter } from './VoxelCharacter.js';
 import { VoxelTerrain } from './VoxelTerrain.js';
 import { VoxelBuildings } from './VoxelBuildings.js';
+import { RoadSignposts } from './RoadSignposts.js';
 import { VoxelUI } from './VoxelUI.js';
+import { RoadNetwork } from './RoadNetwork.js';
 
 export class VoxelGame {
   constructor(canvas) {
@@ -24,7 +26,7 @@ export class VoxelGame {
         shortName: '斜視',
         icon: '📐',
         pitch: 0.82,     // 約 47 度俯角
-        distance: 17,    // 舒適視距
+        distance: 24,    // 舒適視距
         lookAtOffsetY: 1.2
       },
       {
@@ -57,6 +59,7 @@ export class VoxelGame {
     this.targetDistance = initialMode.distance;
     this.currentLookAtY = initialMode.lookAtOffsetY;
     this.cameraTarget = new THREE.Vector3();
+    this.roadsVisible = true;
 
     this.initScene();
     this.initLights();
@@ -76,6 +79,9 @@ export class VoxelGame {
     this.camera.lookAt(this.cameraTarget.x, this.cameraTarget.y + this.currentLookAtY, this.cameraTarget.z);
 
     this.ui = new VoxelUI(this);
+    const requestedCode = new URLSearchParams(window.location.search).get('landmark');
+    const requestedPlace = this.buildings.landmarksWith3D.find(item => item.data.code === requestedCode);
+    if (requestedPlace) this.teleportToLandmark(requestedPlace.data);
 
     // 啟動主迴圈
     this.animate = this.animate.bind(this);
@@ -86,7 +92,7 @@ export class VoxelGame {
     this.scene = new THREE.Scene();
     // 溫暖明亮的陽明山天藍色背景與遠景柔霧 (近處無霧干擾)
     this.scene.background = new THREE.Color(0xa7d8ff);
-    this.scene.fog = new THREE.Fog(0xa7d8ff, 35, 120);
+    this.scene.fog = new THREE.Fog(0xa7d8ff, 60, 180);
 
     const width = this.canvas.clientWidth || window.innerWidth;
     const height = this.canvas.clientHeight || window.innerHeight;
@@ -106,13 +112,17 @@ export class VoxelGame {
   }
 
   initLights() {
-    // 柔和自然環境光 (避免過曝死白)
-    const ambientLight = new THREE.AmbientLight(0xffffff, 0.55);
+    // 溫暖明亮的環境光
+    const ambientLight = new THREE.AmbientLight(0xffffff, 0.45);
     this.scene.add(ambientLight);
 
-    // 太陽斜射光
-    this.sunLight = new THREE.DirectionalLight(0xfff8eb, 0.65);
-    this.sunLight.position.set(30, 45, 25);
+    // 陽明山天際半球光 (天頂天空藍 + 地面反光草綠)
+    const hemiLight = new THREE.HemisphereLight(0xe8f4f8, 0x8cb369, 0.25);
+    this.scene.add(hemiLight);
+
+    // 太陽斜射明亮暖光
+    this.sunLight = new THREE.DirectionalLight(0xfffaed, 0.55);
+    this.sunLight.position.set(35, 50, 30);
     this.sunLight.castShadow = true;
     this.sunLight.shadow.mapSize.width = 1024;
     this.sunLight.shadow.mapSize.height = 1024;
@@ -129,10 +139,13 @@ export class VoxelGame {
 
   initWorld() {
     // 1. 地形、步道與自然景觀
-    this.terrain = new VoxelTerrain(this.scene);
+    this.roadNetwork = new RoadNetwork();
+    this.terrain = new VoxelTerrain(this.scene, this.roadNetwork, this.renderer.capabilities.maxTextureSize);
 
     // 2. 30 處地標與特色體素建築 (麥當勞、派出所、7-11、美軍宿舍群等)
-    this.buildings = new VoxelBuildings(this.scene);
+    this.buildings = new VoxelBuildings(this.scene, this.roadNetwork);
+    this.signposts = new RoadSignposts(this.scene, this.roadNetwork);
+    this.entrance = this.roadNetwork.placements.get('site_01').entrance;
 
     // 3. 玩家主角方塊小人 (青綠色上衣、深藍長褲，還原截圖 4)
     this.player = new VoxelCharacter({
@@ -141,7 +154,7 @@ export class VoxelGame {
       isNpc: false
     });
     // 起點位置：開闊草地前庭，視野通透 (如截圖 4 與 5)
-    this.player.group.position.set(-8, 0, 15);
+    this.player.group.position.set(this.entrance[0], 0, this.entrance[1]);
     this.scene.add(this.player.group);
 
     // 4. 里長 NPC (棕色外套、深色長褲，站在主角身邊歡迎玩家，還原截圖 5)
@@ -151,14 +164,22 @@ export class VoxelGame {
       isNpc: true,
       name: '里長 黃裕倉'
     });
-    this.chiefNpc.group.position.set(-5.5, 0, 14.2);
+    this.chiefNpc.group.position.set(this.entrance[0] + 2.5, 0, this.entrance[1] + 1.5);
     this.chiefNpc.group.rotation.y = -Math.PI / 3;
     this.scene.add(this.chiefNpc.group);
+  }
+
+  resetInput() {
+    Object.keys(this.keys).forEach(key => { this.keys[key] = false; });
+    this.player.stop();
+    if (this.cancelPointer) this.cancelPointer();
   }
 
   initControls() {
     // 鍵盤移動監聽
     window.addEventListener('keydown', (e) => {
+      if (e.target?.closest('input, textarea, select, [contenteditable]') || this.ui?.isBlockingWorldInput()) return;
+      if (['arrowup', 'arrowdown', 'arrowleft', 'arrowright', ' '].includes(e.key.toLowerCase())) e.preventDefault();
       switch (e.key.toLowerCase()) {
         case 'w':
         case 'arrowup':
@@ -178,7 +199,7 @@ export class VoxelGame {
           break;
         case 'v':
         case 'c':
-          this.ui.triggerViewModeCycle();
+          if (!e.repeat) this.ui.triggerViewModeCycle();
           break;
       }
     });
@@ -213,6 +234,13 @@ export class VoxelGame {
     let lastY = 0;
     let startTime = 0;
     let pointerButton = 0;
+    let activePointerId = null;
+    this.cancelPointer = () => { isPointerDown = false; activePointerId = null; };
+    window.addEventListener('blur', () => this.resetInput());
+    document.addEventListener('visibilitychange', () => {
+      if (document.hidden) this.resetInput();
+    });
+    window.addEventListener('pointercancel', () => this.resetInput());
 
     const groundPlane = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0);
     const planeHit = new THREE.Vector3();
@@ -226,14 +254,16 @@ export class VoxelGame {
 
       raycaster.setFromCamera(pointer, this.camera);
       if (raycaster.ray.intersectPlane(groundPlane, planeHit)) {
-        const hitX = THREE.MathUtils.clamp(planeHit.x, -135, 135);
-        const hitZ = THREE.MathUtils.clamp(planeHit.z, -135, 135);
+        const hitX = THREE.MathUtils.clamp(planeHit.x, -this.roadNetwork.halfSize + 2, this.roadNetwork.halfSize - 2);
+        const hitZ = THREE.MathUtils.clamp(planeHit.z, -this.roadNetwork.halfSize + 2, this.roadNetwork.halfSize - 2);
         this.player.moveTo(hitX, hitZ);
         this.terrain.spawnRipple(hitX, hitZ);
       }
     };
 
     window.addEventListener('pointerdown', (e) => {
+      if (e.target !== this.canvas || this.ui?.isBlockingWorldInput() || activePointerId !== null) return;
+      activePointerId = e.pointerId;
       // 點在 UI 卡片或按鈕上不啟動拖曳或尋路
       if (e.target && e.target.closest('button, .voxel-action-btn, .voxel-story-card, .voxel-album-card, .voxel-circle-stat, .voxel-btn-view, .voxel-badge-title')) {
         return;
@@ -250,7 +280,7 @@ export class VoxelGame {
     });
 
     window.addEventListener('pointermove', (e) => {
-      if (!isPointerDown) return;
+      if (!isPointerDown || e.pointerId !== activePointerId) return;
 
       const deltaX = e.clientX - lastX;
       const deltaY = e.clientY - lastY;
@@ -272,8 +302,10 @@ export class VoxelGame {
     });
 
     window.addEventListener('pointerup', (e) => {
-      if (!isPointerDown) return;
+      if (!isPointerDown || e.pointerId !== activePointerId) return;
       isPointerDown = false;
+      activePointerId = null;
+      if (this.ui?.isBlockingWorldInput()) return;
 
       const totalDist = Math.hypot(e.clientX - startX, e.clientY - startY);
       const duration = Date.now() - startTime;
@@ -285,7 +317,8 @@ export class VoxelGame {
     });
 
     // 支援滑鼠滾輪縮放視野 (Zoom In / Zoom Out)
-    window.addEventListener('wheel', (e) => {
+    this.canvas.addEventListener('wheel', (e) => {
+      if (this.ui?.isBlockingWorldInput()) return;
       this.targetDistance = THREE.MathUtils.clamp(this.targetDistance + e.deltaY * 0.025, 4.5, 60);
     }, { passive: true });
 
@@ -298,21 +331,33 @@ export class VoxelGame {
   }
 
   teleportToEntrance() {
+    this.resetInput();
     // 快速傳送回起點入口
     this.player.stop();
-    this.player.group.position.set(-8, 0, 15);
+    this.player.group.position.set(this.entrance[0], 0, this.entrance[1]);
     this.player.group.rotation.y = 0;
+    this.cameraTarget.copy(this.player.group.position);
     this.cameraYaw = 0;
-    this.terrain.spawnRipple(-8, 15);
+    this.terrain.spawnRipple(this.entrance[0], this.entrance[1]);
+    const mode = this.getCurrentViewMode();
+    this.targetDistance = mode.distance;
+    this.targetPitch = mode.pitch;
   }
 
   teleportToLandmark(landmark) {
     const item = this.buildings.landmarksWith3D.find(l => l.data.id === landmark.id);
     if (item) {
       this.player.stop();
-      this.player.group.position.set(item.worldX, 0, item.worldZ + 4);
-      this.player.group.rotation.y = Math.PI;
-      this.terrain.spawnRipple(item.worldX, item.worldZ + 4);
+      this.resetInput();
+      this.player.group.position.set(item.entrance[0], 0, item.entrance[1]);
+      this.cameraTarget.copy(this.player.group.position);
+      this.player.group.rotation.y = item.yaw + Math.PI;
+      if (landmark.district === 'yangmingshan') {
+        this.cameraYaw = item.yaw;
+        this.targetDistance = landmark.code === '60' ? 58 : 40;
+        this.targetPitch = .85;
+      }
+      this.terrain.spawnRipple(item.entrance[0], item.entrance[1]);
     }
   }
 
@@ -335,6 +380,9 @@ export class VoxelGame {
 
       const moveStep = this.player.speed * delta;
       this.player.group.position.addScaledVector(moveDir, moveStep);
+      const limit = this.roadNetwork.halfSize - 2;
+      this.player.group.position.x = THREE.MathUtils.clamp(this.player.group.position.x, -limit, limit);
+      this.player.group.position.z = THREE.MathUtils.clamp(this.player.group.position.z, -limit, limit);
 
       // 面向移動方向
       const targetAngle = Math.atan2(moveDir.x, moveDir.z);
@@ -380,6 +428,20 @@ export class VoxelGame {
 
   getCurrentViewMode() {
     return this.viewModes[this.currentViewIndex];
+  }
+
+  toggleRoads() {
+    this.roadsVisible = !this.roadsVisible;
+    if (this.terrain && this.terrain.roadsMesh) {
+      this.terrain.roadsMesh.visible = this.roadsVisible;
+    }
+    if (this.signposts && this.signposts.group) {
+      this.signposts.group.visible = this.roadsVisible;
+    }
+    if (this.ui) {
+      this.ui.setRoadsVisible(this.roadsVisible);
+    }
+    return this.roadsVisible;
   }
 
   updateCamera() {
@@ -432,7 +494,8 @@ export class VoxelGame {
     const time = this.clock.getElapsedTime();
 
     // 鍵盤移動
-    this.handleKeyboardMove(delta);
+    if (this.ui?.isBlockingWorldInput()) this.resetInput();
+    else this.handleKeyboardMove(delta);
 
     // 角色動畫更新
     this.player.update(delta);
@@ -441,12 +504,21 @@ export class VoxelGame {
     // 地景與建築更新 (漣漪淡出、引導晶石浮動)
     this.terrain.update(delta);
     this.buildings.update(delta, time);
+    if (this.signposts && this.ui) {
+      const cornerNav = this.signposts.update(this.player.group.position, this.player.group.rotation.y);
+      this.ui.updateCornerNav(cornerNav);
+    }
 
     // 距離感測
     this.updateProximity();
 
     // 鏡頭跟隨
     this.updateCamera();
+
+    // 即時更新 UI 小地圖位置與玩家朝向
+    if (this.ui && this.ui.update) {
+      this.ui.update(this.player.group.position, this.player.group.rotation.y);
+    }
 
     // 渲染場景
     this.renderer.render(this.scene, this.camera);

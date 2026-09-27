@@ -39,6 +39,13 @@ html, body {
   touch-action: none;
 }
 
+/* 通用隱藏類別 (防遮罩誤顯) */
+.hidden {
+  display: none !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+}
+
 /* 3D UI 頂層覆蓋層：全部穿透至底層 3D 畫布 */
 #voxel-ui-container {
   position: absolute;
@@ -59,7 +66,8 @@ html, body {
 .voxel-btn-entrance,
 .voxel-action-btn,
 .voxel-story-card,
-.voxel-album-card {
+.voxel-album-card,
+.voxel-minimap-card {
   pointer-events: auto;
 }
 
@@ -195,6 +203,12 @@ html, body {
 
 .voxel-btn-view:active {
   transform: scale(0.92);
+}
+
+.voxel-btn-view.roads-hidden {
+  background: #e8f5e9;
+  color: #2e7d32;
+  border-color: #81c784;
 }
 
 .voxel-btn-view .view-icon {
@@ -650,4 +664,501 @@ html, body {
   font-size: 20px;
   font-weight: 900;
   color: #2a9d8f;
+}
+
+/* ==========================================
+   7. 右上角可收合即時小地圖 (Minimap HUD) - 支援放大模式
+   ========================================== */
+.voxel-minimap-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(15, 23, 42, 0.65);
+  backdrop-filter: blur(4px);
+  z-index: 95;
+  pointer-events: auto;
+  transition: opacity 0.25s ease;
+}
+
+.voxel-minimap-backdrop.hidden {
+  display: none !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+}
+
+.voxel-minimap-card {
+  position: absolute;
+  top: 86px;
+  right: 16px;
+  width: 220px;
+  background: rgba(247, 239, 225, 0.95);
+  backdrop-filter: blur(14px);
+  border: 2.5px solid #8c6e54;
+  border-radius: 16px;
+  box-shadow: 0 8px 24px rgba(45, 38, 30, 0.28);
+  overflow: hidden;
+  transition: width 0.3s cubic-bezier(0.2, 0.9, 0.3, 1),
+              top 0.3s cubic-bezier(0.2, 0.9, 0.3, 1),
+              right 0.3s cubic-bezier(0.2, 0.9, 0.3, 1),
+              transform 0.3s cubic-bezier(0.2, 0.9, 0.3, 1);
+  z-index: 100;
+  display: flex;
+  flex-direction: column;
+}
+
+/* 收合模式 */
+.voxel-minimap-card.collapsed {
+  width: 175px;
+}
+
+.voxel-minimap-card.collapsed .minimap-content {
+  display: none;
+}
+
+/* 放大全景大地圖模式 (居中大窗) */
+.voxel-minimap-card.expanded {
+  position: fixed;
+  top: 50% !important;
+  left: 50% !important;
+  right: auto !important;
+  transform: translate(-50%, -50%) !important;
+  width: min(600px, 92vw) !important;
+  max-height: 90vh !important;
+  border: 3.5px solid #583d28;
+  border-radius: 20px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.55);
+}
+
+.voxel-minimap-card.expanded .minimap-header {
+  padding: 10px 16px;
+  background: #e3d3bd;
+}
+
+.voxel-minimap-card.expanded .minimap-title {
+  font-size: 16px;
+}
+
+.voxel-minimap-card.expanded .minimap-district {
+  font-size: 12px;
+  padding: 2px 8px;
+}
+
+.voxel-minimap-card.expanded .minimap-content {
+  padding: 12px 14px;
+}
+
+.voxel-minimap-card.expanded .minimap-zoom-toolbar {
+  display: flex;
+}
+
+.voxel-minimap-card.expanded .lm-dot-label {
+  display: block;
+}
+
+.minimap-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 12px;
+  background: #ebe0cf;
+  border-bottom: 1.5px solid #cbbeaa;
+  cursor: pointer;
+  user-select: none;
+}
+
+.minimap-title-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.minimap-title {
+  font-size: 13px;
+  font-weight: 800;
+  color: var(--text-dark);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.minimap-district {
+  font-size: 10px;
+  font-weight: 700;
+  color: #ffffff;
+  background: #8c6e54;
+  padding: 1px 6px;
+  border-radius: 6px;
+  width: fit-content;
+}
+
+.minimap-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.minimap-toggle-btn {
+  background: #f7efe1;
+  border: 1px solid #cbbeaa;
+  border-radius: 8px;
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 12px;
+  color: #47392d;
+  transition: transform 0.2s, background 0.2s;
+}
+
+.minimap-toggle-btn:hover {
+  background: #ffffff;
+  transform: scale(1.08);
+}
+
+.minimap-content {
+  padding: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+/* 縮放微型工具列 */
+.minimap-zoom-toolbar {
+  display: none;
+  align-items: center;
+  gap: 6px;
+  background: #ebe0cf;
+  padding: 4px 8px;
+  border-radius: 8px;
+  border: 1px solid #cbbeaa;
+}
+
+.zoom-btn {
+  background: #f7efe1;
+  border: 1px solid #b5a48e;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 2px 7px;
+  cursor: pointer;
+  color: #3d2b1f;
+  transition: background 0.15s;
+}
+
+.zoom-btn:hover {
+  background: #ffffff;
+}
+
+.zoom-text {
+  font-size: 11px;
+  font-weight: 700;
+  color: #5c4738;
+  min-width: 38px;
+  text-align: center;
+}
+
+.zoom-drag-hint {
+  font-size: 10px;
+  color: #8c7866;
+  margin-left: auto;
+}
+
+.minimap-map-container {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  border-radius: 12px;
+  overflow: hidden;
+  border: 1.5px solid #cbbeaa;
+  background: #d8c7a9;
+  user-select: none;
+}
+
+/* 可平移與縮放的內部畫布容器 */
+.minimap-transform-layer {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  transform-origin: 50% 50%;
+  transition: transform 0.1s ease-out;
+}
+
+.minimap-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  pointer-events: none;
+}
+
+.minimap-landmarks-layer {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+}
+
+/* 地標標記圓點與懸停名稱 */
+.minimap-lm-dot-wrap {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  pointer-events: auto;
+  cursor: pointer;
+  z-index: 10;
+}
+
+.lm-dot-circle {
+  width: 8px;
+  height: 8px;
+  background: #ffb703;
+  border: 1.5px solid #ffffff;
+  border-radius: 50%;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.4);
+  transition: transform 0.2s, background 0.2s;
+}
+
+.minimap-lm-dot-wrap:hover .lm-dot-circle {
+  transform: scale(1.8);
+  background: #fb8500;
+}
+
+.minimap-lm-dot-wrap.visited .lm-dot-circle {
+  background: #2a9d8f;
+  border-color: #f8f9fa;
+}
+
+.lm-dot-label {
+  display: none;
+  position: absolute;
+  bottom: 12px;
+  left: 50%;
+  transform: translateX(-50%);
+  white-space: nowrap;
+  background: rgba(30, 41, 59, 0.88);
+  color: #ffffff;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 6px;
+  border-radius: 4px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+  pointer-events: none;
+}
+
+.minimap-lm-dot-wrap:hover .lm-dot-label {
+  display: block !important;
+  z-index: 30;
+}
+
+/* 玩家即時呼吸紅點 */
+.minimap-player-dot {
+  position: absolute;
+  width: 16px;
+  height: 16px;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  z-index: 25;
+}
+
+.minimap-player-dot .dot-core {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 8px;
+  height: 8px;
+  background: #e63946;
+  border: 1.5px solid #ffffff;
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  box-shadow: 0 0 8px #e63946;
+}
+
+.minimap-player-dot .dot-pulse {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 18px;
+  height: 18px;
+  background: rgba(230, 57, 70, 0.5);
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  animation: minimap-pulse 1.6s infinite ease-out;
+}
+
+@keyframes minimap-pulse {
+  0% { transform: translate(-50%, -50%) scale(0.6); opacity: 0.9; }
+  100% { transform: translate(-50%, -50%) scale(2.2); opacity: 0; }
+}
+
+/* 玩家面朝方向箭頭指示器 */
+.minimap-player-dot .minimap-player-arrow {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  border-left: 5px solid transparent;
+  border-right: 5px solid transparent;
+  border-bottom: 14px solid #e63946;
+  transform-origin: 50% 100%;
+  transform: translate(-50%, -100%) rotate(0deg);
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.6));
+  pointer-events: none;
+  z-index: 30;
+  transition: transform 0.06s linear;
+}
+
+.minimap-player-dot .minimap-player-arrow::after {
+  content: '';
+  position: absolute;
+  top: 3px;
+  left: -3px;
+  width: 0;
+  height: 0;
+  border-left: 3px solid transparent;
+  border-right: 3px solid transparent;
+  border-bottom: 9px solid #ffbe0b;
+}
+
+.minimap-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 4px;
+  font-size: 11px;
+  color: #7d6f5e;
+  font-weight: 600;
+}
+
+.minimap-shortcut {
+  background: rgba(0, 0, 0, 0.08);
+  padding: 2px 6px;
+  border-radius: 6px;
+}
+
+
+.road-attribution { position: fixed; left: 8px; bottom: max(5px, env(safe-area-inset-bottom)); z-index: 45; padding: 3px 5px; border-radius: 4px; background: #fffdf1e8; color: #405647; font: 10px/1.3 sans-serif; text-decoration: none; }
+
+/* 轉角路名指標牌 HUD (台灣標準路政綠底白字/黃字風格) */
+.corner-nav-hud {
+  position: fixed;
+  top: 75px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 90;
+  background: rgba(27, 94, 32, 0.94);
+  color: #ffffff;
+  padding: 10px 18px;
+  border-radius: 14px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35), 0 0 0 2px rgba(255, 255, 255, 0.25);
+  backdrop-filter: blur(8px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  min-width: 270px;
+  max-width: 90vw;
+  pointer-events: none;
+  transition: opacity 0.25s ease, transform 0.25s ease;
+}
+.corner-nav-hud.hidden {
+  display: none !important;
+}
+.corner-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 700;
+  color: #c8e6c9;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.25);
+  padding-bottom: 4px;
+  width: 100%;
+  justify-content: center;
+}
+.corner-directions {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  width: 100%;
+}
+.corner-dir-item {
+  font-size: 13px;
+  font-weight: 600;
+  background: rgba(0, 0, 0, 0.25);
+  padding: 4px 10px;
+  border-radius: 8px;
+  text-align: center;
+}
+.corner-dir-row {
+  display: flex;
+  gap: 6px;
+  width: 100%;
+}
+.corner-dir-row .corner-dir-item {
+  flex: 1;
+}
+.road-name {
+  color: #fff9c4;
+  font-weight: 700;
+}
+
+/* Clear map labels and comfortable controls on desktop and touch screens. */
+.voxel-minimap-card.expanded {
+  width: min(720px, 94vw, calc(94dvh - 155px)) !important;
+  max-width: none !important;
+  max-height: 96dvh !important;
+  transition: none;
+}
+.voxel-minimap-card.expanded .lm-dot-label { display:none; }
+.minimap-lm-dot-wrap:focus .lm-dot-label { display:block; }
+.minimap-lm-dot-wrap:hover, .minimap-lm-dot-wrap:focus { z-index:40; }
+.minimap-lm-dot-wrap { padding:5px; }
+.minimap-map-container { flex-shrink:0; touch-action:none; }
+.minimap-transform-layer { transition:none; }
+.zoom-btn, .minimap-toggle-btn { min-width:32px; min-height:32px; }
+.album-tools { display:flex; flex-wrap:wrap; gap:10px; padding:8px 20px; align-items:center; }
+.album-tools input[type=search] { flex:1; min-width:160px; padding:10px; border:1px solid #cbbeaa; border-radius:8px; user-select:text; }
+.album-tools label { font-size:13px; cursor:pointer; }
+.album-tools select { max-width:100%; padding:8px; border:1px solid #cbbeaa; border-radius:8px; background:#fffdf6; color:#405647; }
+.atlas-export-button { margin-left:auto; padding:8px 10px; border:1px solid #b5c4ab; border-radius:8px; background:#e5eddc; color:#305641; cursor:pointer; white-space:nowrap; }
+.atlas-export-button:disabled { opacity:.6; cursor:wait; }
+@media(max-width:600px) { .voxel-album-title { font-size:17px; } .atlas-export-button { padding:8px; font-size:12px; } }
+button:focus-visible, [role=button]:focus-visible, input:focus-visible { outline:3px solid #16877d; outline-offset:3px; }
+@media (max-width:600px) {
+  .voxel-minimap-card:not(.expanded) { width:150px; top:112px; right:8px; }
+  .voxel-minimap-card.expanded { width:94vw !important; }
+  .voxel-minimap-card.expanded .minimap-content { padding:8px; }
+  .zoom-drag-hint { display:none; }
+  .minimap-header { padding:6px; }
+  .minimap-title { font-size:11px; }
+  .minimap-footer { font-size:9px; }
+}
+
+/* Navigation stays out of the scenery until requested. */
+.voxel-minimap-card.collapsed { display:none; }
+.voxel-bottom-hint { pointer-events:none; animation: hint-dismiss .4s ease 10s forwards; }
+@keyframes hint-dismiss { to { opacity:0; visibility:hidden; } }
+.navigation-active { background:#dfefe7; border-color:#287b65; }
+.close-navigation { position:absolute; top:2px; right:2px; width:30px; height:30px; border:0; border-radius:8px; background:transparent; color:white; font-size:22px; cursor:pointer; pointer-events:auto; }
+.corner-nav-hud { padding-right:34px; }
+@media (max-width:600px) {
+  .voxel-badge-title { top:10px; left:10px; padding:6px 10px; }
+  .voxel-badge-title .title-text { font-size:14px; }
+  .voxel-album-top-group { top:52px; left:10px; right:10px; gap:6px; justify-content:flex-end; }
+  .voxel-album-top-group .voxel-btn-view { padding:8px 10px; gap:4px; font-size:13px; min-height:42px; white-space:nowrap; }
+  .voxel-album-top-group .voxel-btn-album { font-size:13px; padding:9px 12px; white-space:nowrap; }
+  .voxel-circle-stat { display:none; }
+  .corner-nav-hud { top:105px; left:10px; transform:none; min-width:0; max-width:calc(100vw - 20px); font-size:11px; }
+  .voxel-minimap-card:not(.expanded) { width:190px; top:110px; }
+  .voxel-minimap-card:not(.expanded) .minimap-title { white-space:nowrap; }
+  .voxel-minimap-card.expanded { width:min(94vw, calc(94dvh - 165px)) !important; }
+  .voxel-action-btn { max-width:90vw; font-size:15px; }
+  .voxel-bottom-hint { bottom:30px; max-width:calc(100vw - 100px); left:12px; transform:none; white-space:normal; font-size:11px; }
 }

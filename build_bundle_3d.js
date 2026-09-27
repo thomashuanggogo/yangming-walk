@@ -19,7 +19,12 @@ function cleanModule(filePath) {
 }
 
 const charCode = cleanModule(path.join(__dirname, 'src/three/VoxelCharacter.js'));
+const roadsDataCode = cleanModule(path.join(__dirname, 'src/world/real_roads.js'));
+const surfaceCode = cleanModule(path.join(__dirname, 'src/world/road_surface.js'));
+const roadsCode = cleanModule(path.join(__dirname, 'src/three/RoadNetwork.js'));
+const signpostsCode = cleanModule(path.join(__dirname, 'src/three/RoadSignposts.js'));
 const terrainCode = cleanModule(path.join(__dirname, 'src/three/VoxelTerrain.js'));
+const architectureCode = cleanModule(path.join(__dirname, 'src/three/LandmarkArchitecture.js'));
 const buildingsCode = cleanModule(path.join(__dirname, 'src/three/VoxelBuildings.js'));
 const uiCode = cleanModule(path.join(__dirname, 'src/three/VoxelUI.js'));
 const gameCode = cleanModule(path.join(__dirname, 'src/three/VoxelGame.js'));
@@ -43,9 +48,14 @@ const bundled = `/**
   ${charCode}
 
   // 3. 體素地形與自然景觀
+  ${roadsDataCode}
+  ${surfaceCode}
+${roadsCode}
+  ${signpostsCode}
   ${terrainCode}
 
   // 4. 體素建築與 30 處地標
+  ${architectureCode}
   ${buildingsCode}
 
   // 5. 互動介面與圖鑑系統
@@ -61,3 +71,9 @@ const bundled = `/**
 
 fs.writeFileSync(path.join(__dirname, 'bundle_3d.js'), bundled, 'utf-8');
 console.log('成功生成 bundle_3d.js！大小：', (bundled.length / 1024).toFixed(2), 'KB');
+
+// Standalone architecture review uses the same models as the game.
+const previewTemplate = fs.readFileSync(path.join(__dirname, 'src/preview/architecture-preview.html'), 'utf8');
+const previewRuntime = fs.readFileSync(path.join(__dirname, 'src/preview/architecture-preview.js'), 'utf8');
+const previewCore = fs.readFileSync(path.join(__dirname, 'assets/three.min.js'), 'utf8');
+fs.writeFileSync(path.join(__dirname, '建築外觀預覽.html'), previewTemplate.replace('/* PREVIEW_SCRIPT */', () => previewCore + '\n' + landmarksCode + '\n' + architectureCode + '\n' + previewRuntime), 'utf8');
